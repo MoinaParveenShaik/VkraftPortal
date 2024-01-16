@@ -56,6 +56,7 @@ public class Controller extends RouteBuilder {
 
 					services.saveEmployee(employee);
 					System.out.println("data " + employee);
+					System.out.println("Hello");
 
 					String recipientEmail = employee.getEmail();
 					String generatedPassword = randomPassword;
