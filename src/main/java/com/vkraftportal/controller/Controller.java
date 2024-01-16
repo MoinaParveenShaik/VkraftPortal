@@ -56,7 +56,8 @@ public class Controller extends RouteBuilder {
 
 					services.saveEmployee(employee);
 					System.out.println("data " + employee);
-					System.out.println("Hello");
+					System.out.println("Hiiiii");
+
 
 					String recipientEmail = employee.getEmail();
 					String generatedPassword = randomPassword;
@@ -305,8 +306,8 @@ public class Controller extends RouteBuilder {
 
 // --------------------------------------------------------------Get Employee Count-------------------------------------------------------------
 
-		rest("/getEmployeeCount").get().to("direct:employee");
-		from("direct:employee").process(exchange -> {
+		rest("/getEmployeeCount").get().to("direct:getEmployee");
+		from("direct:getEmployee").process(exchange -> {
 			Long employeeCount = services.getCountOfEmployee();
 			System.out.println(employeeCount);
 			exchange.getMessage().setBody(employeeCount);
