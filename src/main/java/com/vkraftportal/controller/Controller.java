@@ -411,12 +411,11 @@ public class Controller extends RouteBuilder {
 				}
 			}
 		}).end();
-		
-		
+
 //		-----------------------------------------Login Before On-Boarding---------------------------------------------------------------------------
-		
-		rest("/verifyLogin").get().param().name("email").type(RestParamType.query).endParam().param()
-		.name("password").type(RestParamType.query).endParam().to("direct:processLogin");
+
+		rest("/verifyLogin").get().param().name("email").type(RestParamType.query).endParam().param().name("password")
+				.type(RestParamType.query).endParam().to("direct:processLogin");
 		from("direct:processLogin").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
@@ -431,41 +430,40 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			}
 		});
-		
+
 //		---------------------------------------------------Forgot Password--------------------------------------------------------------------------
-		
+
 		rest("/forgetPassword").put().param().name("email").type(RestParamType.query).endParam().param()
-		.name("password").type(RestParamType.query).endParam().to("direct:processPassword");
-		from("direct:processPassword").process(exchange ->{
+				.name("password").type(RestParamType.query).endParam().to("direct:processPassword");
+		from("direct:processPassword").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
 			RegisterCandidate registerCandidate = services.findCandidateByEmail(email);
- 
- 
+
 			if (services.candidateExists(registerCandidate)) {
 				registerCandidate.setPassword(password);
 				services.saveCandidate(registerCandidate);
 				if (!services.isValidPassword(registerCandidate.getPassword())) {
-					exchange.getMessage().setBody("Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
+					exchange.getMessage().setBody(
+							"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
 					return;
-				}
-				else {
+				} else {
 					exchange.getMessage().setBody(registerCandidate);
 					exchange.getMessage().setBody("Password updated succussfully");
-					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);}
-			}
-			else {
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				}
+			} else {
 				exchange.getMessage().setBody("Please provide valid emailid");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			}
- 
+
 		});
-		
+
 //		------------------------------------------------------Register Job---------------------------------------------------------------------------
-		
+
 		rest("/registerJob").post().type(CreateJob.class).to("direct:saveJob");
 		from("direct:saveJob").log("Job : ${body}").process(new Processor() {
- 
+
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				CreateJob body = exchange.getIn().getBody(CreateJob.class);
@@ -474,7 +472,7 @@ public class Controller extends RouteBuilder {
 				if (jobDetails != null) {
 					exchange.getMessage().setBody("Job details already exists for job id : " + body.getJobId());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
- 
+
 				} else {
 					services.saveJob(body);
 					exchange.getMessage().setBody("Job details are saved for : " + body.getJobId());
@@ -482,6 +480,19 @@ public class Controller extends RouteBuilder {
 				}
 			}
 		});
+//-------------------------------------------List of applied candidates
 
+		rest("listOfAppliedCandidates").get().to("direct:appliedCandidates");
+		from("direct:appliedCandidates").log("Get all applied candidates request received").process(new Processor() {
+
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				Iterable<RegisterCandidate> allAppliedCandidates = services.getAllAppliedCandidates();
+				System.out.println(allAppliedCandidates);
+				exchange.getMessage().setBody(allAppliedCandidates);
+				// Set HTTP status code to 200 (OK)
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+		});
 	}
 }
