@@ -39,7 +39,7 @@ public class Controller extends RouteBuilder {
 
 // ------------------------------------------------Register Employee HR Portal Timesheet----------------------------------------------------------------
 
-		rest("/registerEmployee").post().type(RegisterEmployee.class).to("direct:processRegisterEmployee");
+		rest().post("/registerEmployee").type(RegisterEmployee.class).to("direct:processRegisterEmployee");
 		from("direct:processRegisterEmployee").log("RegisterEmployee : ${body}").process(new Processor() {
 			@Override
 			public void process(Exchange exchange) throws Exception {
@@ -56,7 +56,6 @@ public class Controller extends RouteBuilder {
 
 					services.saveEmployee(employee);
 					System.out.println("data " + employee);
-					System.out.println("Hiiiii");
 
 					String recipientEmail = employee.getEmail();
 					String generatedPassword = randomPassword;
@@ -79,14 +78,14 @@ public class Controller extends RouteBuilder {
 		from("direct:sendMail").setHeader("Subject", constant("Your Account Information for Timesheet portal"))
 				.process(exchange -> {
 					String recipientEmail = exchange.getMessage().getHeader("recipientEmail", String.class);
-					String emailBody = exchange.getIn().getBody(String.class); // Get the email body from the message
-																				// body
+					String emailBody = exchange.getIn().getBody(String.class);
+
 					System.out.println(emailBody);
-					System.out.println("Recipient Email: " + recipientEmail); // Log recipient email
+					System.out.println("Recipient Email: " + recipientEmail);
 
 					exchange.getMessage().setBody(emailBody);
-				}).recipientList(simple(
-						"smtps://smtp.gmail.com:465?username=babasahebudamle1007@gmail.com&password=qgge nnbr xjvj tqmn&to=${header.recipientEmail}"));
+				})
+				.toD("smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}");
 
 // ----------------------------------------------------Save Timesheet Employee Portal---------------------------------------------------
 
@@ -201,7 +200,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// -----------------------------------------------Get All Registered Employees HR Portal Timesheet----------------------------------------------------
+// -----------------------------------------------Get All Employees HR Portal Timesheet----------------------------------------------------
 
 		rest().get("/getAllEmployees").to("direct:getTotalEmployees");
 
@@ -218,14 +217,14 @@ public class Controller extends RouteBuilder {
 
 // -----------------------------------------------Verify Employee EmployeeLogin PortalTimesheet----------------------------------------------------------------
 
-		rest("/verifyEmployee").get().param().name("username").type(RestParamType.query).endParam().param()
+		rest().get("/verifyEmployee").param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:employee");
 		from("direct:employee").process(exchange -> {
 			String username = exchange.getIn().getHeader("username", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
 			log.info("Received request with username: {} and password: {}", username, password);
 			RegisterEmployee employee = services.getEmployeeByUsernameAndPassword(username, password);
-			boolean isUserValid = services.verifyEmployee(employee);
+			boolean isUserValid = services.validateEmployee(username, password);
 			if (isUserValid) {
 				exchange.getMessage().setBody(employee);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -286,14 +285,14 @@ public class Controller extends RouteBuilder {
 
 // ------------------------------------------------------Verify Human Resource HR Portal Timesheet-------------------------------------------------------------
 
-		rest("/VerifyHumanResource").post().param().name("username").type(RestParamType.query).endParam().param()
+		rest().get("/verifyHumanResource").param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:HumanResource");
 		from("direct:HumanResource").process(exchange -> {
 			String username = exchange.getIn().getHeader("username", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
 			log.info("Received request with username: {} and password: {}", username, password);
 			HumanResource humanResource = services.getHRByUsernameAndPassword(username, password);
-			boolean isUserValid = services.verifyHR(humanResource);
+			boolean isUserValid = services.validateHR(username, password);
 			if (isUserValid) {
 				exchange.getMessage().setBody(humanResource);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -305,7 +304,7 @@ public class Controller extends RouteBuilder {
 
 // ----------------------------------------------------------Get Employee Count Timesheet HR Portal-------------------------------------------------------------
 
-		rest("/getEmployeeCount").get().to("direct:getEmployee");
+		rest().get("/getEmployeeCount").to("direct:getEmployee");
 		from("direct:getEmployee").process(exchange -> {
 			Long employeeCount = services.getCountOfEmployee();
 			System.out.println(employeeCount);
@@ -316,7 +315,7 @@ public class Controller extends RouteBuilder {
 
 // ---------------------------------------------------------RegisterCandidate After-Onboarding--------------------------------------------------------
 
-		rest("/registerCandidate").post().type(RegisterCandidate.class).to("direct:processRegisterCandidate");
+		rest().post("/registerCandidate").type(RegisterCandidate.class).to("direct:processRegisterCandidate");
 		from("direct:processRegisterCandidate").log("RegisterCandidate : ${body}").process(new Processor() {
 			@Override
 			public void process(Exchange exchange) throws Exception {
@@ -363,11 +362,11 @@ public class Controller extends RouteBuilder {
 
 					exchange.getMessage().setBody(emailBody);
 				}).recipientList(simple(
-						"smtps://smtp.gmail.com:465?username=babasahebudamle1007@gmail.com&password=qgge nnbr xjvj tqmn&to=${header.recipientEmail}"));
+						"smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}"));
 
 // --------------------------------------------------------Candidate Login After On-Boarding------------------------------------------------------------
 
-		rest("/verifyCandidate").get().param().name("email").type(RestParamType.query).endParam().param()
+		rest().get("/verifyCandidate").param().name("email").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:Candidate");
 		from("direct:Candidate").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
@@ -414,7 +413,7 @@ public class Controller extends RouteBuilder {
 
 //		-----------------------------------------Login Before On-Boarding---------------------------------------------------------------------------
 
-		rest("/verifyLogin").get().param().name("email").type(RestParamType.query).endParam().param().name("password")
+		rest().get("/verifyLogin").param().name("email").type(RestParamType.query).endParam().param().name("password")
 				.type(RestParamType.query).endParam().to("direct:processLogin");
 		from("direct:processLogin").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
@@ -433,7 +432,7 @@ public class Controller extends RouteBuilder {
 
 //		---------------------------------------------------Forgot Password--------------------------------------------------------------------------
 
-		rest("/forgetPassword").put().param().name("email").type(RestParamType.query).endParam().param()
+		rest().put("/forgetPassword").param().name("email").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:processPassword");
 		from("direct:processPassword").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
@@ -461,7 +460,7 @@ public class Controller extends RouteBuilder {
 
 //		------------------------------------------------------Register Job Before On-Boarding---------------------------------------------------------------------------
 
-		rest("/registerJob").post().type(CreateJob.class).to("direct:saveJob");
+		rest().post("/registerJob").type(CreateJob.class).to("direct:saveJob");
 		from("direct:saveJob").log("Job : ${body}").process(new Processor() {
 
 			@Override
@@ -483,7 +482,7 @@ public class Controller extends RouteBuilder {
 
 //		----------------------------------------------------Register Candidate Before On-Boarding-----------------------------------------------------
 
-		rest().post("/saveregistercandidate").type(RegisterCandidate.class).to("direct:processRegister");
+		rest().post("/saveRegisterCandidate").type(RegisterCandidate.class).to("direct:processRegister");
 		from("direct:processRegister").log("RegisterCandidate : ${body}").process(new Processor() {
 			@Override
 			public void process(Exchange exchange) throws Exception {
@@ -510,18 +509,95 @@ public class Controller extends RouteBuilder {
 				}
 			}
 		}).end();
-		
+
 //		--------------------------------------------Applied Candidates List Before On-Boarding--------------------------------------------------------
-		
-		rest("listOfAppliedCandidates").get().to("direct:appliedCandidates");
+
+		rest().get("/listOfAppliedCandidates").to("direct:appliedCandidates");
 		from("direct:appliedCandidates").log("Get all applied candidates request received").process(new Processor() {
- 
+
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				Iterable<RegisterCandidate> allAppliedCandidates = services.getAllAppliedCandidates();
 				System.out.println(allAppliedCandidates);
 				exchange.getMessage().setBody(allAppliedCandidates);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+		});
+		
+		
+//		------------------------After clicking on screening should be moved to Screening Before On-Boarding-------------------------------
+		rest().post("/selectedForScreening").type(AppliedCandidateInformation.class).to("direct:selectedForScreening");
+		from("direct:selectedForScreening").log("selectedForScreeningCandidate : ${body}").process(new Processor() {
+ 
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				AppliedCandidateInformation body = exchange.getIn().getBody(AppliedCandidateInformation.class);
+				body.setStatus("screening");
+				AppliedCandidateInformation updateAppliedCandidateInfo = services.updateAppliedCandidateInfo(body);
+ 
+				String emailBody = services.getScreeningEmailBody(body);
+ 
+				exchange.getMessage().setBody(emailBody);
+				exchange.getMessage().setHeader("recipientEmail", updateAppliedCandidateInfo.getEmail());
+				exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+ 
+				ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+				producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+						exchange.getMessage().getHeaders());
+			}
+		});
+		
+//		--------------After clicking on reject should be deleted from each Applied candidate list
+		rest().delete("/deleteCandidateFromAppliedCandidateInformation").param().name("email").type(RestParamType.query)
+				.endParam().to("direct:deleteCandidateFromAppliedCandidateInformation");
+		from("direct:deleteCandidateFromAppliedCandidateInformation").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+			System.out.println(email);
+			services.deleteCandidateFromAppliedCandidateInformation(email);
+			System.out.println("valid");
+			exchange.getMessage().setBody("Status: Record Deleted");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+ 
+		});
+		
+//		--------------------------------------------Screening Candidates List Before On-Boarding-----------------------------------------------
+		 
+		rest("listOfScreeningCandidates").get().to("direct:screeningCandidates");
+		from("direct:screeningCandidates").log("Get all screening candidates request received")
+				.process(new Processor() {
+ 
+					@Override
+					public void process(Exchange exchange) throws Exception {
+						Iterable<AppliedCandidateInformation> allScreeningCandidates = services
+								.getAllScreeningCandidates();
+						System.out.println(allScreeningCandidates);
+						exchange.getMessage().setBody(allScreeningCandidates);
+						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+					}
+				});
+		
+//		--------------After clicking on Selected should be moved to technicalOne Before On-Boarding--------------------
+		rest().post("/selectedForTechnicalOne").type(AppliedCandidateInformation.class)
+				.to("direct:selectedForTechnicalOne");
+		from("direct:selectedForTechnicalOne").log("selectedForTechnicalOne : ${body}").process(new Processor() {
+ 
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				AppliedCandidateInformation body = exchange.getIn().getBody(AppliedCandidateInformation.class);
+				body.setStatus("technicalOne");
+				AppliedCandidateInformation updateAppliedCandidateInfo = services.updateAppliedCandidateInfo(body);
+ 
+				String emailBody = services.getTechnicalRoundEmailBody(body);
+ 
+				exchange.getMessage().setBody(emailBody);
+				exchange.getMessage().setHeader("recipientEmail", updateAppliedCandidateInfo.getEmail());
+				exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+ 
+				ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+				producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+						exchange.getMessage().getHeaders());
 			}
 		});
 
