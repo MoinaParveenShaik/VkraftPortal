@@ -9,4 +9,8 @@ public interface AppliedCandidateInformationRepo extends ElasticsearchRepository
 	
 	AppliedCandidateInformation findByJobIdAndFullName(String jobId, String fullName);
 
+	void deleteByEmail(String email);
+
+	Iterable<AppliedCandidateInformation> findByStatus(String str);
+
 }
