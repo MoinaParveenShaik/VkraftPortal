@@ -38,45 +38,46 @@ public class Services {
 	AppliedCandidateInformationRepo appliedCandidaterepo;
 	@Autowired
 	CreateJobRepo jobRepo;
-	
-	//---------------------------------------HumanResource Services---------------------------------
-	
+
+// ---------------------------------------HumanResource Services---------------------------------
+
 	public HumanResource saveHRCredentials(HumanResource humanResource) {
 
 		return humanResourceRepo.save(humanResource);
 	}
-	
+
 	public boolean humanResourceExists(HumanResource humanResource) {
 
-		if (humanResourceRepo.findByEmployeeNameAndEmployeeNumber(humanResource.getEmployeeName(),humanResource.getEmployeeNumber()) != null) {
+		if (humanResourceRepo.findByEmployeeNameAndEmployeeNumber(humanResource.getEmployeeName(),
+				humanResource.getEmployeeNumber()) != null) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
+
 	public boolean validateHR(String username, String password) {
 		HumanResource humanResource = humanResourceRepo.findByEmail(username);
-        return humanResource != null && humanResource.getPassword().equals(password);
-    }
-	
-	public HumanResource getHRByUsernameAndPassword(String email, String password ) {
+		return humanResource != null && humanResource.getPassword().equals(password);
+	}
+
+	public HumanResource getHRByUsernameAndPassword(String email, String password) {
 		return humanResourceRepo.findByEmailAndPassword(email, password);
 	}
-	
+
 	public boolean verifyHR(HumanResource humanResource) {
 
 		return validateHR(humanResource.getEmail(), humanResource.getPassword());
 	}
-	
-	//------------------------------------------------------RegisterCandidate Services----------------------------------------
-	
+
+// ------------------------------------------------------RegisterCandidate Services---------------------------------
+
 	public boolean candidateExists(RegisterCandidate registerCandidate) {
-	    if (registerCandidate != null && registerCandidate.getEmail() != null) {
-	        return candidateRepo.findByEmail(registerCandidate.getEmail()) != null;
-	    } else {
-	        return false;
-	    }
+		if (registerCandidate != null && registerCandidate.getEmail() != null) {
+			return candidateRepo.findByEmail(registerCandidate.getEmail()) != null;
+		} else {
+			return false;
+		}
 	}
 
 	public String generateAndSetRandomPassword() {
@@ -112,29 +113,38 @@ public class Services {
 		RegisterCandidate Candidate = candidateRepo.findByEmail(email);
 		return Candidate != null && Candidate.getPassword().equals(password);
 	}
-	
+
 	public boolean verifyCandidate(RegisterCandidate candidate) {
 
 		return validateCandidate(candidate.getEmail(), candidate.getPassword());
 	}
-	
+
 	public RegisterCandidate findCandidateByEmail(String email) {
 		return candidateRepo.findByEmail(email);
 	}
-	
+
 	public RegisterCandidate getCandidateByEmailAndPassword(String email, String password) {
 		return candidateRepo.findByEmailAndPassword(email, password);
 	}
-	
+
 	public boolean isValidPassword(String password) {
-		 
+
 		String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-={};':\"\\|,.<>?/]).{8,}$";
 		return password.matches(regex);
 	}
 
-	
-	//----------------------------------------------------------RegisterEmployee Services---------------------------------------------
-	
+	public boolean isValidMobileNumber(String mobileNumber) {
+
+		return mobileNumber.matches("\\d{10}");
+	}
+
+	public Iterable<RegisterCandidate> getAllAppliedCandidates() {
+		Iterable<RegisterCandidate> findAll = candidateRepo.findAll();
+		return findAll;
+	}
+
+// ----------------------------------------------------------RegisterEmployee Services---------------------------------------------
+
 	public RegisterEmployee saveEmployee(RegisterEmployee employee) {
 		return employeeRepo.save(employee);
 	}
@@ -166,8 +176,6 @@ public class Services {
 				+ "HR Team, \nVkraft Software Services Pvt Ltd\nwww.vkraftsoftware.com\nwww.kraftsoftwaresolution.com";
 	}
 
-	
-
 	public Long getCountOfEmployee() {
 		return employeeRepo.count();
 	}
@@ -181,9 +189,9 @@ public class Services {
 	public boolean verifyEmployee(RegisterEmployee employee) {
 		return validateEmployee(employee.getEmail(), employee.getPassword());
 	}
-	
-	//-------------------------------------------------------Timesheet Services---------------------------------------------------------
-	
+
+// -------------------------------------------------------Timesheet Services---------------------------------------------------------
+
 	public void saveTimesheet(Timesheet timesheet) {
 		timesheetRepo.save(timesheet);
 	}
@@ -244,38 +252,37 @@ public class Services {
 		System.out.println(findAll + "Sss");
 		return findAll;
 	}
-	
-	
-	//----------------------------------------------------------AppliedCandidateInformation Services-----------------------------------------------
-	
+
+// ----------------------------------------------------------AppliedCandidateInformation Services-----------------------------------------------
+
 	public AppliedCandidateInformation saveAppliedCandidateInfo(AppliedCandidateInformation appliedCandidateInfo) {
 		return appliedCandidaterepo.save(appliedCandidateInfo);
 	}
-	
+
 	public boolean appliedCandidateInfoExists(AppliedCandidateInformation appliedCandidateInfo) {
- 
-		if (appliedCandidaterepo.findByJobIdAndFullName(appliedCandidateInfo.getJobId(),appliedCandidateInfo.getFullName()) != null) {
+
+		if (appliedCandidaterepo.findByJobIdAndFullName(appliedCandidateInfo.getJobId(),
+				appliedCandidateInfo.getFullName()) != null) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
-	public  String convertToBase64(String filePath) throws IOException {
+
+	public String convertToBase64(String filePath) throws IOException {
 		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
 		return Base64.getEncoder().encodeToString(fileContent);
 	}
-	
-	//----------------------------------------------------------------Create Job-----------------------------------------------------------------
-	
+
+// ----------------------------------------------------------------CreateJob-----------------------------------------------------------------
+
 	public CreateJob getJobDetails(String jobId) {
 		CreateJob findByJobId = jobRepo.findByJobId(jobId);
 		return findByJobId;
 	}
-	
+
 	public void saveJob(CreateJob job) {
 		jobRepo.save(job);
 	}
-
 
 }

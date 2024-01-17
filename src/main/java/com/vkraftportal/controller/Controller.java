@@ -37,7 +37,7 @@ public class Controller extends RouteBuilder {
 				.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
 				.setBody(simple("Internal Server Error: ${exception.message}"));
 
-// ------------------------------------------------Register Employee----------------------------------------------------------------
+// ------------------------------------------------Register Employee HR Portal Timesheet----------------------------------------------------------------
 
 		rest("/registerEmployee").post().type(RegisterEmployee.class).to("direct:processRegisterEmployee");
 		from("direct:processRegisterEmployee").log("RegisterEmployee : ${body}").process(new Processor() {
@@ -57,7 +57,6 @@ public class Controller extends RouteBuilder {
 					services.saveEmployee(employee);
 					System.out.println("data " + employee);
 					System.out.println("Hiiiii");
-
 
 					String recipientEmail = employee.getEmail();
 					String generatedPassword = randomPassword;
@@ -89,7 +88,7 @@ public class Controller extends RouteBuilder {
 				}).recipientList(simple(
 						"smtps://smtp.gmail.com:465?username=babasahebudamle1007@gmail.com&password=qgge nnbr xjvj tqmn&to=${header.recipientEmail}"));
 
-// ----------------------------------------------------Save Timesheet---------------------------------------------------
+// ----------------------------------------------------Save Timesheet Employee Portal---------------------------------------------------
 
 		rest().post("/saveTimesheet").type(Timesheet.class).to("direct:processTimesheet");
 		from("direct:processTimesheet").log("Timesheet : ${body}").process(new Processor() {
@@ -111,7 +110,7 @@ public class Controller extends RouteBuilder {
 			}
 		}).end();
 
-// ------------------------------------------------------Update Timesheets---------------------------------------------------------
+// ------------------------------------------------------Update Timesheets Employee Portal---------------------------------------------------------
 
 		rest().put("/updateTimesheet").param().name("employeeNumber").type(RestParamType.query).endParam().param()
 				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
@@ -152,7 +151,7 @@ public class Controller extends RouteBuilder {
 
 		});
 
-// ---------------------------------------------------------- Delete Timesheet------------------------------------------------------
+// ---------------------------------------------------------- Delete Timesheet Timesheet------------------------------------------------------
 
 		rest().delete("/deleteEmployee").param().name("employeeNumber").type(RestParamType.query).endParam().param()
 				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
@@ -176,7 +175,7 @@ public class Controller extends RouteBuilder {
 
 		});
 
-// ---------------------------------------------------------Get Timesheet---------------------------------------------------------
+// ---------------------------------------------------------Get Timesheet HR Portal Timesheet---------------------------------------------------------
 
 		rest().get("/getTimesheet").param().name("employeeNumber").type(RestParamType.query).endParam().param()
 				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
@@ -202,7 +201,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// -----------------------------------------------Get All Registered Employees----------------------------------------------------
+// -----------------------------------------------Get All Registered Employees HR Portal Timesheet----------------------------------------------------
 
 		rest().get("/getAllEmployees").to("direct:getTotalEmployees");
 
@@ -217,7 +216,7 @@ public class Controller extends RouteBuilder {
 			}
 		}).end();
 
-// -----------------------------------------------------Verify Employee----------------------------------------------------------------
+// -----------------------------------------------Verify Employee EmployeeLogin PortalTimesheet----------------------------------------------------------------
 
 		rest("/verifyEmployee").get().param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:employee");
@@ -236,7 +235,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// --------------------------------------------------GetApprovedTimesheets------------------------------------------------------------
+// ------------------------------------------------GetApprovedTimesheets HR Portal Timesheet------------------------------------------------------------
 
 		rest().get("/getApprovedTimesheeets").to("direct:approvedTimesheeets");
 		from("direct:approvedTimesheeets").process(exchange -> {
@@ -251,7 +250,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// ----------------------------------------------------------RegisterHumanResource-------------------------------------------------------------------
+// ------------------------------------------------------Register Human Resource HR Portal Timesheet-------------------------------------------------------------------
 
 		rest().post("/registerHumanResource").type(HumanResource.class).to("direct:processAdmin");
 		from("direct:processAdmin").log("User : ${body}").process(new Processor() {
@@ -270,7 +269,7 @@ public class Controller extends RouteBuilder {
 			}
 		}).end();
 
-// ---------------------------------------------------------Get Pending Employees-----------------------------------------------------------
+// ------------------------------------------------------Get Pending Employees HR Portal Timesheet-----------------------------------------------------------
 
 		rest().get("/pendingEmployees").to("direct:getPendingEmployees");
 		from("direct:getPendingEmployees").process(exchange -> {
@@ -285,7 +284,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// -----------------------------------------------------------------VerifyHumanResource-------------------------------------------------------------
+// ------------------------------------------------------Verify Human Resource HR Portal Timesheet-------------------------------------------------------------
 
 		rest("/VerifyHumanResource").post().param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:HumanResource");
@@ -304,7 +303,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// --------------------------------------------------------------Get Employee Count-------------------------------------------------------------
+// ----------------------------------------------------------Get Employee Count Timesheet HR Portal-------------------------------------------------------------
 
 		rest("/getEmployeeCount").get().to("direct:getEmployee");
 		from("direct:getEmployee").process(exchange -> {
@@ -315,7 +314,7 @@ public class Controller extends RouteBuilder {
 
 		});
 
-// -------------------------------------------------------------------RegisterCandidate--------------------------------------------------------
+// ---------------------------------------------------------RegisterCandidate After-Onboarding--------------------------------------------------------
 
 		rest("/registerCandidate").post().type(RegisterCandidate.class).to("direct:processRegisterCandidate");
 		from("direct:processRegisterCandidate").log("RegisterCandidate : ${body}").process(new Processor() {
@@ -366,7 +365,7 @@ public class Controller extends RouteBuilder {
 				}).recipientList(simple(
 						"smtps://smtp.gmail.com:465?username=babasahebudamle1007@gmail.com&password=qgge nnbr xjvj tqmn&to=${header.recipientEmail}"));
 
-// ----------------------------------------------------------Candidate Login------------------------------------------------------------
+// --------------------------------------------------------Candidate Login After On-Boarding------------------------------------------------------------
 
 		rest("/verifyCandidate").get().param().name("email").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:Candidate");
@@ -386,7 +385,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//-------------------------------------------------------------Save Applied Candidate Information-------------------------------------------------
+//--------------------------------------------------Save Applied Candidate Information Before-OnBoarding-------------------------------------------------
 
 		rest().post("/saveAppliedCandidateInformation").type(AppliedCandidateInformation.class)
 				.to("direct:candidateInfo");
@@ -412,12 +411,11 @@ public class Controller extends RouteBuilder {
 				}
 			}
 		}).end();
-		
-		
+
 //		-----------------------------------------Login Before On-Boarding---------------------------------------------------------------------------
-		
-		rest("/verifyLogin").get().param().name("email").type(RestParamType.query).endParam().param()
-		.name("password").type(RestParamType.query).endParam().to("direct:processLogin");
+
+		rest("/verifyLogin").get().param().name("email").type(RestParamType.query).endParam().param().name("password")
+				.type(RestParamType.query).endParam().to("direct:processLogin");
 		from("direct:processLogin").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
@@ -432,41 +430,40 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			}
 		});
-		
+
 //		---------------------------------------------------Forgot Password--------------------------------------------------------------------------
-		
+
 		rest("/forgetPassword").put().param().name("email").type(RestParamType.query).endParam().param()
-		.name("password").type(RestParamType.query).endParam().to("direct:processPassword");
-		from("direct:processPassword").process(exchange ->{
+				.name("password").type(RestParamType.query).endParam().to("direct:processPassword");
+		from("direct:processPassword").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
 			RegisterCandidate registerCandidate = services.findCandidateByEmail(email);
- 
- 
+
 			if (services.candidateExists(registerCandidate)) {
 				registerCandidate.setPassword(password);
 				services.saveCandidate(registerCandidate);
 				if (!services.isValidPassword(registerCandidate.getPassword())) {
-					exchange.getMessage().setBody("Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
+					exchange.getMessage().setBody(
+							"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
 					return;
-				}
-				else {
+				} else {
 					exchange.getMessage().setBody(registerCandidate);
 					exchange.getMessage().setBody("Password updated succussfully");
-					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);}
-			}
-			else {
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				}
+			} else {
 				exchange.getMessage().setBody("Please provide valid emailid");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			}
- 
+
 		});
-		
-//		------------------------------------------------------Register Job---------------------------------------------------------------------------
-		
+
+//		------------------------------------------------------Register Job Before On-Boarding---------------------------------------------------------------------------
+
 		rest("/registerJob").post().type(CreateJob.class).to("direct:saveJob");
 		from("direct:saveJob").log("Job : ${body}").process(new Processor() {
- 
+
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				CreateJob body = exchange.getIn().getBody(CreateJob.class);
@@ -475,12 +472,56 @@ public class Controller extends RouteBuilder {
 				if (jobDetails != null) {
 					exchange.getMessage().setBody("Job details already exists for job id : " + body.getJobId());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
- 
+
 				} else {
 					services.saveJob(body);
 					exchange.getMessage().setBody("Job details are saved for : " + body.getJobId());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
 				}
+			}
+		});
+
+//		----------------------------------------------------Register Candidate Before On-Boarding-----------------------------------------------------
+
+		rest().post("/saveregistercandidate").type(RegisterCandidate.class).to("direct:processRegister");
+		from("direct:processRegister").log("RegisterCandidate : ${body}").process(new Processor() {
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				RegisterCandidate registercandidate = exchange.getIn().getBody(RegisterCandidate.class);
+
+				if (!services.isValidMobileNumber(registercandidate.getMobileNumber())) {
+					exchange.getMessage().setBody("Please provide Valid Mobile Number");
+					return;
+				}
+				if (!services.isValidPassword(registercandidate.getPassword())) {
+					exchange.getMessage().setBody(
+							"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
+					return;
+				}
+
+				if (services.candidateExists(registercandidate)) {
+					exchange.getMessage().setBody("Candidate already exists with " + registercandidate.getEmail());
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
+				} else {
+					services.saveCandidate(registercandidate);
+					exchange.getMessage()
+							.setBody(registercandidate.getFullname() + " your registration is successful.");
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+				}
+			}
+		}).end();
+		
+//		--------------------------------------------Applied Candidates List Before On-Boarding--------------------------------------------------------
+		
+		rest("listOfAppliedCandidates").get().to("direct:appliedCandidates");
+		from("direct:appliedCandidates").log("Get all applied candidates request received").process(new Processor() {
+ 
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				Iterable<RegisterCandidate> allAppliedCandidates = services.getAllAppliedCandidates();
+				System.out.println(allAppliedCandidates);
+				exchange.getMessage().setBody(allAppliedCandidates);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
 		});
 
