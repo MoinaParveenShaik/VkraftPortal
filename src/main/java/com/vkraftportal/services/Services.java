@@ -1,9 +1,12 @@
 package com.vkraftportal.services;
 
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -263,27 +266,12 @@ public class Services {
 		}
 	}
 
-//	public String convertToBase64(String filePath) throws IOException {
-//		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
-//		return Base64.getEncoder().encodeToString(fileContent);
-//	}
-	
-	
-
-	public AppliedCandidateInformation updateAppliedCandidateInfo(AppliedCandidateInformation body) {
-
-		AppliedCandidateInformation updatedCandidate = body;
-		updatedCandidate.setStatus("screening");
-		appliedCandidaterepo.delete(body);
-		AppliedCandidateInformation saved = appliedCandidaterepo.save(updatedCandidate);
-		return saved;
+	public  String convertToBase64(String filePath) throws IOException {
+		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
+		return Base64.getEncoder().encodeToString(fileContent);
 	}
 	
 	
-	
-
-
-
 	public String getScreeningEmailBody(AppliedCandidateInformation body) {
 		return "Hi " + body.getFullName() + ",\n\n"
 				+ "Congratulations! Your profile is shortlisted.\n\n"
@@ -338,9 +326,32 @@ public class Services {
 				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
 				+ "www.kraftsoftwaresolution.com";
 	}
+	
+	public String getDeleteTechnicalOneCandidateEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "We regret to inform you that you are not qualified in the first round of technical interview.\n\n"
+				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+				+ "www.kraftsoftwaresolution.com";
+	}
+	
+	public String getDeleteTechnicalTwoCandidateEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "We regret to inform you that you are not qualified in the second round of technical interview.\n\n"
+				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+				+ "www.kraftsoftwaresolution.com";
+	}
+	
+	public String getDeleteHRCandidateEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "We regret to inform you that you are not qualified in the HR round.\n\n"
+				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+				+ "www.kraftsoftwaresolution.com";
+	}
 
 	public AppliedCandidateInformation getCandidateByEmail(String email) {
-//		System.out.println(email + "found" + byEmail);
 		AppliedCandidateInformation byEmail = appliedCandidaterepo.findByEmail(email);
 		System.out.println(email + "found" + byEmail);
 		return byEmail;
@@ -356,6 +367,7 @@ public class Services {
 
 		appliedCandidaterepo.deleteByEmail(email);
 	}
+	
 
 	public void deleteCandidateFromScreeningCandidateInformation(String email) {
 		AppliedCandidateInformation candidate = appliedCandidaterepo.findByEmail(email);
@@ -411,6 +423,12 @@ public class Services {
 
 	public void saveJob(CreateJob job) {
 		jobRepo.save(job);
+	}
+	
+	public Iterable<CreateJob> getAllJobs() {
+		Iterable<CreateJob> findAll = jobRepo.findAll();
+		System.out.println(findAll);
+		return findAll;
 	}
 
 }
