@@ -39,7 +39,7 @@ public class Services {
 	@Autowired
 	CreateJobRepo jobRepo;
 
-//	---------------------------------------HumanResource Services---------------------------------
+	//	---------------------------------------HumanResource Services---------------------------------
 
 	public HumanResource saveHRCredentials(HumanResource humanResource) {
 
@@ -65,7 +65,7 @@ public class Services {
 		return humanResourceRepo.findByEmailAndPassword(email, password);
 	}
 
-//	------------------------------------------------------RegisterCandidate Services---------------------------------
+	//	------------------------------------------------------RegisterCandidate Services---------------------------------
 
 	public boolean candidateExists(RegisterCandidate registerCandidate) {
 		if (registerCandidate != null && registerCandidate.getEmail() != null) {
@@ -100,7 +100,8 @@ public class Services {
 				+ "HR Team, \nVkraft Software Services Pvt Ltd\nwww.vkraftsoftware.com\nwww.kraftsoftwaresolution.com";
 	}
 
-	public RegisterCandidate getCandidateByEmail(String email, String password) {
+	public RegisterCandidate getCandidateByEmail(String email,String password) {
+
 		return candidateRepo.findByEmailAndPassword(email, password);
 	}
 
@@ -133,8 +134,8 @@ public class Services {
 		return mobileNumber.matches("\\d{10}");
 	}
 
-	public Iterable<RegisterCandidate> getAllAppliedCandidates() {
-		Iterable<RegisterCandidate> findAll = candidateRepo.findAll();
+	public Iterable<AppliedCandidateInformation> getAllAppliedCandidates() {
+		Iterable<AppliedCandidateInformation> findAll = appliedCandidaterepo.findAll();
 		return findAll;
 	}
 
@@ -147,7 +148,7 @@ public class Services {
 				+ "HR Team, \nVkraft Software Services Pvt Ltd\nwww.vkraftsoftware.com\nwww.kraftsoftwaresolution.com";
 	}
 
-//	--------------------------------------RegisterEmployee Services-----------------------------------------
+	//	--------------------------------------RegisterEmployee Services-----------------------------------------
 
 	public RegisterEmployee saveEmployee(RegisterEmployee employee) {
 		return employeeRepo.save(employee);
@@ -190,7 +191,7 @@ public class Services {
 		return findAll;
 	}
 
-//	------------------------------------------Timesheet Services-----------------------------------
+	//	------------------------------------------Timesheet Services-----------------------------------
 
 	public void saveTimesheet(Timesheet timesheet) {
 		timesheetRepo.save(timesheet);
@@ -253,16 +254,26 @@ public class Services {
 		return findAll;
 	}
 
-//	----------------------------------AppliedCandidateInformationServices----------------------------------
+	//	----------------------------------AppliedCandidateInformationServices----------------------------------
 
 	public AppliedCandidateInformation saveAppliedCandidateInfo(AppliedCandidateInformation appliedCandidateInfo) {
 		return appliedCandidaterepo.save(appliedCandidateInfo);
 	}
 
+	//	public boolean appliedCandidateInfoExists(AppliedCandidateInformation appliedCandidateInfo) {
+	//
+	//		if (appliedCandidaterepo.findByJobIdAndFullName(appliedCandidateInfo.getJobId(),
+	//				appliedCandidateInfo.getFullName()) != null) {
+	//			return true;
+	//		} else {
+	//			return false;
+	//		}
+	//	}
+
 	public boolean appliedCandidateInfoExists(AppliedCandidateInformation appliedCandidateInfo) {
 
-		if (appliedCandidaterepo.findByJobIdAndFullName(appliedCandidateInfo.getJobId(),
-				appliedCandidateInfo.getFullName()) != null) {
+		if (appliedCandidaterepo.findByJobIdAndEmail(appliedCandidateInfo.getJobId(),
+				appliedCandidateInfo.getEmail()) != null) {
 			return true;
 		} else {
 			return false;
@@ -273,23 +284,23 @@ public class Services {
 		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
 		return Base64.getEncoder().encodeToString(fileContent);
 	}
-	
+
 	public AppliedCandidateInformation updateAppliedCandidateInfo(AppliedCandidateInformation body) {
- 
+
 		AppliedCandidateInformation updatedCandidate = body;
 		appliedCandidaterepo.delete(body);
 		AppliedCandidateInformation saved = appliedCandidaterepo.save(updatedCandidate);
 		return saved;
 	}
-	
+
 	public String getScreeningEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
+		return "Hi "+ body.getFullName()  + ",\n\n"
 				+ "Congratulations! You have been selected for the Screening round.\n\n"
 				+ "Please be prepared for the upcoming screening process. If you have any questions or need further information, feel free to contact us.\n\n"
 				+ "Thank you for your interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
 				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 	}
- 
+
 	public String getTechnicalRoundEmailBody(AppliedCandidateInformation body) {
 		return "Hi " + body.getFullName() + ",\n\n"
 				+ "Congratulations! You have successfully cleared the Technical round.\n\n"
@@ -297,19 +308,39 @@ public class Services {
 				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
 				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 	}
-	
+
+	public String getRegretScreeningEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+"Thank you for your interest. We regret to inform you that at this time, your application will not be further considered for this role." 
+				+"We sincerely appreciate your interest in Vkraft, and we encourage you to keep an eye on our career opportunities. Your skills and experience may be an excellent fit for future openings, and we would welcome the opportunity to consider your application again."
+				+ ".\n\n"
+				+ "Thank you for considering us as your potential employer, and we wish you success in your job search. If you have any questions or would like feedback on your application, please do not hesitate to reach out.\n\n"+
+				"We value your understanding and hope you find the perfect match for your career goals in the near future."
+				+ "Best regards,\n" + "HR Team,\n"
+				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+	}
+
+	public AppliedCandidateInformation findByEmail(String email) {
+		AppliedCandidateInformation candidateEmail = appliedCandidaterepo.findByEmail(email);
+		System.out.println(candidateEmail + "found");
+		return candidateEmail;
+	}
+
+
+
+
 	public void deleteCandidateFromAppliedCandidateInformation(String email) {
-		 
+
 		appliedCandidaterepo.deleteByEmail(email);
 	}
-	
+
 	public Iterable<AppliedCandidateInformation> getAllScreeningCandidates() {
 		String str = "screening";
 		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
 		return findByStatus;
 	}
 
-//	---------------------------------------CreateJob------------------------------------------
+	//	---------------------------------------CreateJob------------------------------------------
 
 	public CreateJob getJobDetails(String jobId) {
 		CreateJob findByJobId = jobRepo.findByJobId(jobId);
@@ -319,5 +350,24 @@ public class Services {
 	public void saveJob(CreateJob job) {
 		jobRepo.save(job);
 	}
+
+	public boolean updateAppliedCandidateStatusByEmail(String email) {
+		AppliedCandidateInformation candidate=appliedCandidaterepo.findByEmail(email);
+		if(candidate!=null) {
+			candidate.setStatus("screening");
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
+	public Iterable<CreateJob> getAllJobs() {
+		Iterable<CreateJob> findAll = jobRepo.findAll();
+		System.out.println(findAll);
+		return findAll;
+	}
+
+
 
 }
