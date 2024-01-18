@@ -1,11 +1,9 @@
 package com.vkraftportal.services;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -133,10 +131,6 @@ public class Services {
 		return mobileNumber.matches("\\d{10}");
 	}
 
-	public Iterable<RegisterCandidate> getAllAppliedCandidates() {
-		Iterable<RegisterCandidate> findAll = candidateRepo.findAll();
-		return findAll;
-	}
 
 	public String getEmailBodyForTechOne(String recipientEmail, String fullname, String role) {
 		return "Dear Candidate " + fullname + ",\n\n" + "We're eager to move forward with your application for the "
@@ -269,42 +263,141 @@ public class Services {
 		}
 	}
 
-	public String convertToBase64(String filePath) throws IOException {
-		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
-		return Base64.getEncoder().encodeToString(fileContent);
-	}
+//	public String convertToBase64(String filePath) throws IOException {
+//		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
+//		return Base64.getEncoder().encodeToString(fileContent);
+//	}
 	
+	
+
 	public AppliedCandidateInformation updateAppliedCandidateInfo(AppliedCandidateInformation body) {
- 
+
 		AppliedCandidateInformation updatedCandidate = body;
+		updatedCandidate.setStatus("screening");
 		appliedCandidaterepo.delete(body);
 		AppliedCandidateInformation saved = appliedCandidaterepo.save(updatedCandidate);
 		return saved;
 	}
 	
+	
+	
+
+
+
 	public String getScreeningEmailBody(AppliedCandidateInformation body) {
 		return "Hi " + body.getFullName() + ",\n\n"
-				+ "Congratulations! You have been selected for the Screening round.\n\n"
+				+ "Congratulations! Your profile is shortlisted.\n\n"
 				+ "Please be prepared for the upcoming screening process. If you have any questions or need further information, feel free to contact us.\n\n"
 				+ "Thank you for your interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
 				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 	}
- 
-	public String getTechnicalRoundEmailBody(AppliedCandidateInformation body) {
+
+	public String getTechnicalRoundOneEmailBody(AppliedCandidateInformation body) {
 		return "Hi " + body.getFullName() + ",\n\n"
-				+ "Congratulations! You have successfully cleared the Technical round.\n\n"
-				+ "Please be prepared for the upcoming Technical interview. If you have any questions or need further information, feel free to contact us.\n\n"
+				+ "Congratulations! You have successfully cleared the Screening round.\n\n"
+				+ "Please be prepared for the upcoming Technical round one. If you have any questions or need further information, feel free to contact us.\n\n"
 				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
 				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 	}
-	
-	public void deleteCandidateFromAppliedCandidateInformation(String email) {
-		 
-		appliedCandidaterepo.deleteByEmail(email);
+
+	public String getTechnicalRoundTwoEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "Congratulations! You have successfully cleared the Technical round one.\n\n"
+				+ "Please be prepared for the upcoming Technical round two. If you have any questions or need further information, feel free to contact us.\n\n"
+				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
+				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+	}
+
+	public String getHREmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "Congratulations! You have successfully cleared the Technical round two.\n\n"
+				+ "Please be prepared for the upcoming HR round. If you have any questions or need further information, feel free to contact us.\n\n"
+				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
+				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+	}
+
+	public String getSelectedEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n" + "Congratulations! You have successfully cleared the HR round.\n\n"
+				+ "Further details will be provided shortly. If you have any questions or need further information, feel free to contact us.\n\n"
+				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
+				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+	}
+
+	public String getDeleteAppliedCandidateEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "We regret to inform you that your eligibility criteria didn't match the requirements.\n\n"
+				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+				+ "www.kraftsoftwaresolution.com";
+	}
+
+	public String getDeleteScreeningCandidateEmailBody(AppliedCandidateInformation body) {
+		return "Hi " + body.getFullName() + ",\n\n"
+				+ "We regret to inform you that you are not qualified in the screening round.\n\n"
+				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+				+ "www.kraftsoftwaresolution.com";
+	}
+
+	public AppliedCandidateInformation getCandidateByEmail(String email) {
+//		System.out.println(email + "found" + byEmail);
+		AppliedCandidateInformation byEmail = appliedCandidaterepo.findByEmail(email);
+		System.out.println(email + "found" + byEmail);
+		return byEmail;
 	}
 	
+	public AppliedCandidateInformation findByEmail(String email) {
+		AppliedCandidateInformation candidateEmail = appliedCandidaterepo.findByEmail(email);
+		System.out.println(candidateEmail + "found");
+		return candidateEmail;
+	}
+
+	public void deleteCandidateFromAppliedCandidateInformation(String email) {
+
+		appliedCandidaterepo.deleteByEmail(email);
+	}
+
+	public void deleteCandidateFromScreeningCandidateInformation(String email) {
+		AppliedCandidateInformation candidate = appliedCandidaterepo.findByEmail(email);
+		if (candidate != null) {
+			appliedCandidaterepo.delete(candidate);
+		} else {
+			System.out.println("Candidate Not found");
+		}
+	}
+	
+	public Iterable<AppliedCandidateInformation> getAllAppliedCandidates() {
+		String str = "applied";
+		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
+		return findByStatus;
+	}
+
 	public Iterable<AppliedCandidateInformation> getAllScreeningCandidates() {
-		String str = "screening";
+		String str = "Screening";
+		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
+		return findByStatus;
+	}
+
+	public Iterable<AppliedCandidateInformation> getAllTechnicalOneCandidates() {
+		String str = "TechnicalRoundOne";
+		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
+		return findByStatus;
+	}
+
+	public Iterable<AppliedCandidateInformation> getAllTechnicalTwoCandidates() {
+		String str = "TechnicalRoundTwo";
+		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
+		return findByStatus;
+	}
+
+	public Iterable<AppliedCandidateInformation> getAllHRCandidates() {
+		String str = "HR";
+		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
+		return findByStatus;
+	}
+
+	public Iterable<AppliedCandidateInformation> getAllSelectedCandidates() {
+		String str = "Selected";
 		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
 		return findByStatus;
 	}
