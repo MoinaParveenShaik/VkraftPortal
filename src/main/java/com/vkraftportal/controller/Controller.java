@@ -18,6 +18,7 @@ import com.vkraftportal.model.HumanResource;
 import com.vkraftportal.model.RegisterCandidate;
 import com.vkraftportal.model.RegisterEmployee;
 import com.vkraftportal.model.Timesheet;
+import com.vkraftportal.services.SampleServices;
 import com.vkraftportal.services.Services;
 
 @org.springframework.stereotype.Controller
@@ -27,6 +28,8 @@ public class Controller extends RouteBuilder {
 
 	@Autowired
 	Services services;
+	@Autowired
+	SampleServices sample;
 
 	@Override
 	public void configure() throws Exception {
@@ -285,7 +288,7 @@ public class Controller extends RouteBuilder {
 
 // ------------------------------------------------------Verify Human Resource HR Portal Timesheet-------------------------------------------------------------
 
-		rest().get("/verifyHumanResource").param().name("username").type(RestParamType.query).endParam().param()
+		rest().post("/verifyHumanResource").param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:HumanResource");
 		from("direct:HumanResource").process(exchange -> {
 			String username = exchange.getIn().getHeader("username", String.class);
@@ -399,9 +402,9 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
 				} else {
 					String resumePath = appliedCandidateInfo.getResume();
-					String resumeBase64 = services.convertToBase64(resumePath);
+//					String resumeBase64 = services.convertToBase64(resumePath);
 					appliedCandidateInfo.setStatus("applied");
-					appliedCandidateInfo.setResume(resumeBase64);
+//					appliedCandidateInfo.setResume(resumeBase64);
 					services.saveAppliedCandidateInfo(appliedCandidateInfo);
 					exchange.getMessage()
 							.setBody(appliedCandidateInfo.getFullName() + " succesfully applied for this position");
@@ -480,7 +483,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		----------------------------------------------------Register Candidate Before On-Boarding-----------------------------------------------------
+//		-----------------------------------------------Register Candidate Before On-Boarding----------------------------------------------
 
 		rest().post("/saveRegisterCandidate").type(RegisterCandidate.class).to("direct:processRegister");
 		from("direct:processRegister").log("RegisterCandidate : ${body}").process(new Processor() {
@@ -517,56 +520,110 @@ public class Controller extends RouteBuilder {
 
 			@Override
 			public void process(Exchange exchange) throws Exception {
-				Iterable<RegisterCandidate> allAppliedCandidates = services.getAllAppliedCandidates();
+				Iterable<AppliedCandidateInformation> allAppliedCandidates = services.getAllAppliedCandidates();
 				System.out.println(allAppliedCandidates);
 				exchange.getMessage().setBody(allAppliedCandidates);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
 		});
-		
-		
-//		------------------------After clicking on screening should be moved to Screening Before On-Boarding-------------------------------
-		rest().post("/selectedForScreening").type(AppliedCandidateInformation.class).to("direct:selectedForScreening");
-		from("direct:selectedForScreening").log("selectedForScreeningCandidate : ${body}").process(new Processor() {
- 
-			@Override
-			public void process(Exchange exchange) throws Exception {
-				AppliedCandidateInformation body = exchange.getIn().getBody(AppliedCandidateInformation.class);
-				body.setStatus("screening");
-				AppliedCandidateInformation updateAppliedCandidateInfo = services.updateAppliedCandidateInfo(body);
- 
-				String emailBody = services.getScreeningEmailBody(body);
- 
-				exchange.getMessage().setBody(emailBody);
-				exchange.getMessage().setHeader("recipientEmail", updateAppliedCandidateInfo.getEmail());
-				exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-				ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-				producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
-						exchange.getMessage().getHeaders());
-			}
-		});
-		
-//		--------------After clicking on reject should be deleted from each Applied candidate list
+
+//		--------------After clicking on reject should be deleted from each Applied candidate list------------------
+
 		rest().delete("/deleteCandidateFromAppliedCandidateInformation").param().name("email").type(RestParamType.query)
 				.endParam().to("direct:deleteCandidateFromAppliedCandidateInformation");
 		from("direct:deleteCandidateFromAppliedCandidateInformation").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			System.out.println(email);
+
+			AppliedCandidateInformation candidateByEmail = services.getCandidateByEmail(email);
 			services.deleteCandidateFromAppliedCandidateInformation(email);
 			System.out.println("valid");
 			exchange.getMessage().setBody("Status: Record Deleted");
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
- 
+			String emailBody = services.getDeleteAppliedCandidateEmailBody(candidateByEmail);
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", email);
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+
 		});
-		
-//		--------------------------------------------Screening Candidates List Before On-Boarding-----------------------------------------------
-		 
-		rest("listOfScreeningCandidates").get().to("direct:screeningCandidates");
+
+//		--------------After clicking on reject should be deleted from each Screening candidate list------------------
+
+		rest().delete("/deleteCandidateFromScreeningCandidateInformation").param().name("email")
+				.type(RestParamType.query).endParam().to("direct:deleteCandidateFromScreeningCandidateInformation");
+		from("direct:deleteCandidateFromScreeningCandidateInformation").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+			System.out.println(email);
+			AppliedCandidateInformation allScreeningCandidates = services.getCandidateByEmail(email);
+
+			exchange.getMessage().setBody("Status: Record Deleted");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+
+			String emailBody = services.getDeleteScreeningCandidateEmailBody(allScreeningCandidates);
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", email);
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+			services.deleteCandidateFromScreeningCandidateInformation(email);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+
+		});
+
+
+//		------------------------After clicking on screening should be moved to Screening Before On-Boarding--------------------------
+
+		rest().post("/selectedForScreening").param().name("email").type(RestParamType.query).endParam().param()
+				.name("status").type(RestParamType.query).endParam().to("direct:selectedForScreeningRound");
+
+		from("direct:selectedForScreeningRound").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+
+			System.out.println("Received request for email: " + email);
+
+			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
+
+			if (candidateInfo != null) {
+
+				String status = exchange.getIn().getHeader("status", String.class);
+				String newStatus = (status != null) ? status : "Screening";
+				candidateInfo.setStatus(newStatus);
+				services.saveAppliedCandidateInfo(candidateInfo);
+				exchange.getMessage().setBody(candidateInfo);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+
+			else {
+				System.out.println("Candidate not found for email: " + email);
+				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+			}
+
+			String emailBody = services.getScreeningEmailBody(candidateInfo);
+
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+		});
+
+//		--------------------------------------------Screening Candidates List Before On-Boarding-------------------------------------
+
+		rest().get("/listOfScreeningCandidates").to("direct:screeningCandidates");
 		from("direct:screeningCandidates").log("Get all screening candidates request received")
 				.process(new Processor() {
- 
+
 					@Override
 					public void process(Exchange exchange) throws Exception {
 						Iterable<AppliedCandidateInformation> allScreeningCandidates = services
@@ -576,28 +633,223 @@ public class Controller extends RouteBuilder {
 						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 					}
 				});
-		
+
 //		--------------After clicking on Selected should be moved to technicalOne Before On-Boarding--------------------
-		rest().post("/selectedForTechnicalOne").type(AppliedCandidateInformation.class)
-				.to("direct:selectedForTechnicalOne");
-		from("direct:selectedForTechnicalOne").log("selectedForTechnicalOne : ${body}").process(new Processor() {
- 
+
+		rest().post("/selectedForTechnicalOne").param().name("email").type(RestParamType.query).endParam().param()
+				.name("status").type(RestParamType.query).endParam().to("direct:selectedForTechnicalRoundOne");
+
+		from("direct:selectedForTechnicalRoundOne").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+
+			System.out.println("Received request for email: " + email);
+
+			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
+
+			if (candidateInfo != null) {
+
+				String status = exchange.getIn().getHeader("status", String.class);
+				String newStatus = (status != null) ? status : "TechnicalRoundOne";
+				candidateInfo.setStatus(newStatus);
+				services.saveAppliedCandidateInfo(candidateInfo);
+				exchange.getMessage().setBody(candidateInfo);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+
+			else {
+				System.out.println("Candidate not found for email: " + email);
+				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+			}
+
+			String emailBody = services.getTechnicalRoundOneEmailBody(candidateInfo);
+
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+		});
+
+//		-----------------------Technical Round One Candidate List--------------------
+
+		rest().get("/listOfTechnicalRoundOneCandidates").to("direct:technicalRoundOneCandidates");
+		from("direct:technicalRoundOneCandidates").log("Get all technical round one candidates request received")
+				.process(new Processor() {
+
+					@Override
+					public void process(Exchange exchange) throws Exception {
+						Iterable<AppliedCandidateInformation> getAllTechnicalOneCandidates = services
+								.getAllTechnicalOneCandidates();
+						System.out.println(getAllTechnicalOneCandidates);
+						exchange.getMessage().setBody(getAllTechnicalOneCandidates);
+						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+					}
+				});
+
+//		--------------After clicking on Selected should be moved to technicalTwo Before On-Boarding--------------------
+
+		rest().post("/selectedForTechnicalTwo").param().name("email").type(RestParamType.query).endParam().param()
+				.name("status").type(RestParamType.query).endParam().to("direct:selectedForTechnicalRoundTwo");
+
+		from("direct:selectedForTechnicalRoundTwo").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+
+			System.out.println("Received request for email: " + email);
+
+			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
+
+			if (candidateInfo != null) {
+
+				String status = exchange.getIn().getHeader("status", String.class);
+				String newStatus = (status != null) ? status : "TechnicalRoundTwo";
+				candidateInfo.setStatus(newStatus);
+				services.saveAppliedCandidateInfo(candidateInfo);
+				exchange.getMessage().setBody(candidateInfo);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+
+			else {
+				System.out.println("Candidate not found for email: " + email);
+				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+			}
+
+			String emailBody = services.getTechnicalRoundTwoEmailBody(candidateInfo);
+
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+		});
+
+//		-----------------------Technical Round Two Candidate List--------------------
+
+		rest().get("/listOfTechnicalRoundTwoCandidates").to("direct:technicalRoundTwoCandidates");
+		from("direct:technicalRoundTwoCandidates").log("Get all technical round two candidates request received")
+				.process(new Processor() {
+
+					@Override
+					public void process(Exchange exchange) throws Exception {
+						Iterable<AppliedCandidateInformation> getAllTechnicalTwoCandidates = services
+								.getAllTechnicalTwoCandidates();
+						System.out.println(getAllTechnicalTwoCandidates);
+						exchange.getMessage().setBody(getAllTechnicalTwoCandidates);
+						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+					}
+				});
+
+//		--------------After clicking on Selected should be moved to HR Before On-Boarding--------------------
+
+		rest().post("/selectedForHR").param().name("email").type(RestParamType.query).endParam().param().name("status")
+				.type(RestParamType.query).endParam().to("direct:selectedForHRRound");
+
+		from("direct:selectedForHRRound").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+
+			System.out.println("Received request for email: " + email);
+
+			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
+
+			if (candidateInfo != null) {
+
+				String status = exchange.getIn().getHeader("status", String.class);
+				String newStatus = (status != null) ? status : "HR";
+				candidateInfo.setStatus(newStatus);
+				services.saveAppliedCandidateInfo(candidateInfo);
+				exchange.getMessage().setBody(candidateInfo);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+
+			else {
+				System.out.println("Candidate not found for email: " + email);
+				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+			}
+
+			String emailBody = services.getHREmailBody(candidateInfo);
+
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+		});
+
+//		-----------------------HR Candidate List--------------------
+
+		rest().get("/listOfHRRoundCandidates").to("direct:hRRoundCandidates");
+		from("direct:hRRoundCandidates").log("Get all HR round candidates request received").process(new Processor() {
+
 			@Override
 			public void process(Exchange exchange) throws Exception {
-				AppliedCandidateInformation body = exchange.getIn().getBody(AppliedCandidateInformation.class);
-				body.setStatus("technicalOne");
-				AppliedCandidateInformation updateAppliedCandidateInfo = services.updateAppliedCandidateInfo(body);
- 
-				String emailBody = services.getTechnicalRoundEmailBody(body);
- 
-				exchange.getMessage().setBody(emailBody);
-				exchange.getMessage().setHeader("recipientEmail", updateAppliedCandidateInfo.getEmail());
-				exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-				ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-				producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
-						exchange.getMessage().getHeaders());
+				Iterable<AppliedCandidateInformation> getAllHRCandidates = services.getAllHRCandidates();
+				System.out.println(getAllHRCandidates);
+				exchange.getMessage().setBody(getAllHRCandidates);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+		});
+
+//		--------------After clicking on Selected should be moved to Selected Before On-Boarding--------------------
+		rest().post("/candidatesSelectedInAllRounds").param().name("email").type(RestParamType.query).endParam().param().name("status")
+				.type(RestParamType.query).endParam().to("direct:selectedInAllRounds");
+
+		from("direct:selectedInAllRounds").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+
+			System.out.println("Received request for email: " + email);
+
+			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
+
+			if (candidateInfo != null) {
+
+				String status = exchange.getIn().getHeader("status", String.class);
+				String newStatus = (status != null) ? status : "Selected";
+				candidateInfo.setStatus(newStatus);
+				services.saveAppliedCandidateInfo(candidateInfo);
+				exchange.getMessage().setBody(candidateInfo);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+
+			else {
+				System.out.println("Candidate not found for email: " + email);
+				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+			}
+
+			String emailBody = services.getSelectedEmailBody(candidateInfo);
+
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+		});
+		
+//		-----------------------Selected Candidate List--------------------
+
+		rest().get("/listOfSelectedCandidates").to("direct:selectedCandidates");
+		from("direct:selectedCandidates").log("Get all selected candidates request received").process(new Processor() {
+
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				Iterable<AppliedCandidateInformation> getAllSelectedCandidates = services.getAllSelectedCandidates();
+				System.out.println(getAllSelectedCandidates);
+				exchange.getMessage().setBody(getAllSelectedCandidates);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
 		});
 
