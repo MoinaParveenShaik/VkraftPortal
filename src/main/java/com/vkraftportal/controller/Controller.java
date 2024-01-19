@@ -33,7 +33,6 @@ public class Controller extends RouteBuilder {
 	public void configure() throws Exception {
 		restConfiguration().component("servlet").port(8082).enableCORS(true).host("localhost")
 				.bindingMode(RestBindingMode.json);
-
 		onException(Exception.class).handled(true).log("Exception occurred: ${exception.message}")
 				.setHeader(Exchange.HTTP_RESPONSE_CODE, constant(500))
 				.setBody(simple("Internal Server Error: ${exception.message}"));
@@ -46,40 +45,31 @@ public class Controller extends RouteBuilder {
 			public void process(Exchange exchange) throws Exception {
 				RegisterEmployee employee = exchange.getIn().getBody(RegisterEmployee.class);
 				boolean employeeExists = services.employeeExists(employee);
-
 				if (employeeExists) {
 					exchange.getMessage().setBody("User already exists for " + employee.getEmployeeNumber());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
 				} else {
 					String randomPassword = services.generateAndSetRandomPassword();
 					employee.setPassword(randomPassword);
-
 					services.saveEmployee(employee);
 					String recipientEmail = employee.getEmail();
 					String generatedPassword = randomPassword;
 					String emailBody = services.getEmailBody(recipientEmail, generatedPassword,
 							employee.getEmployeeName());
-
 					exchange.getMessage().setBody(emailBody);
 					exchange.getMessage().setHeader("recipientEmail", recipientEmail);
 					exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 					ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 					producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 							exchange.getMessage().getHeaders());
-
 				}
 			}
 		});
-
-		from("direct:sendMail").setHeader("Subject", constant("Your Account Information for Timesheet portal"))
+		from("direct:sendMail").setHeader("Subject", simple("${header.emailSubject}"))
 				.process(exchange -> {
 					String recipientEmail = exchange.getMessage().getHeader("recipientEmail", String.class);
 					String emailBody = exchange.getIn().getBody(String.class);
-
-					System.out.println("Recipient Email: " + recipientEmail);
-
 					exchange.getMessage().setBody(emailBody);
 				})
 				.toD("smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}");
@@ -98,7 +88,6 @@ public class Controller extends RouteBuilder {
 				} else {
 					timesheetDataToSave.setStatus("pending");
 					services.saveTimesheet(timesheetDataToSave);
-					System.out.println(timesheetDataToSave);
 					exchange.getMessage()
 							.setBody("Timesheet is saved for " + timesheetDataToSave.getMonth() + " month");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
@@ -120,12 +109,9 @@ public class Controller extends RouteBuilder {
 			String clientName = exchange.getIn().getHeader("clientName", String.class);
 			String assignmentName = exchange.getIn().getHeader("assignmentName", String.class);
 			String holidaysInput = exchange.getIn().getHeader("holidaysInput", String.class);
-
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-
 			Timesheet existingEntity = services.findByEmployeeNumberAndMonthAndYear(employeeNumber, month, year);
 			if (existingEntity != null) {
-
 				if (clientName != null) {
 					existingEntity.setClientName(clientName);
 				}
@@ -135,16 +121,13 @@ public class Controller extends RouteBuilder {
 				if (holidaysInput != null) {
 					existingEntity.setHolidaysInput(holidaysInput);
 				}
-
 				services.saveTimesheet(existingEntity);
 				exchange.getMessage().setBody(existingEntity);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-
 			} else {
 				exchange.getMessage().setBody("Error: TimesheetEntity with number '" + employeeNumber + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 		});
 
 // ---------------------------------------------------------- Delete Timesheet Timesheet------------------------------------------------------
@@ -156,11 +139,8 @@ public class Controller extends RouteBuilder {
 			String employeeNumber = exchange.getIn().getHeader("employeeNumber", String.class);
 			String month = exchange.getIn().getHeader("month", String.class);
 			String year = exchange.getIn().getHeader("year", String.class);
-			System.out.println(employeeNumber + month + year);
 			boolean timesheet = services.deleteByEmployeeNumberAndDate(employeeNumber, month, year);
-			System.out.println(timesheet);
 			if (timesheet) {
-				System.out.println("valid");
 				exchange.getMessage().setBody("Status: Record for Employee " + employeeNumber + " for Month " + month
 						+ " and Year " + year + " Deleted");
 			} else {
@@ -168,7 +148,6 @@ public class Controller extends RouteBuilder {
 						+ month + " and Year " + year);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 		});
 
 // ---------------------------------------------------------Get Timesheet HR Portal Timesheet---------------------------------------------------------
@@ -181,13 +160,11 @@ public class Controller extends RouteBuilder {
 			String month = exchange.getIn().getHeader("month", String.class);
 			String year = exchange.getIn().getHeader("year", String.class);
 			String errorMessage = "";
-
 			if (!errorMessage.isEmpty()) {
 				exchange.getMessage().setBody("Error: " + errorMessage.trim());
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			} else {
 				Timesheet timeSheetEntity = services.findByEmployeeNumberAndMonthAndYear(number, month, year);
-
 				if (timeSheetEntity != null) {
 					exchange.getMessage().setBody(timeSheetEntity);
 				} else {
@@ -204,9 +181,7 @@ public class Controller extends RouteBuilder {
 		from("direct:getTotalEmployees").log("Get All Employees request received").process(new Processor() {
 			@Override
 			public void process(Exchange exchange) throws Exception {
-
 				Iterable<RegisterEmployee> allEmployees = services.getAllEmployees();
-				System.out.println(allEmployees);
 				exchange.getMessage().setBody(allEmployees);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
@@ -236,7 +211,6 @@ public class Controller extends RouteBuilder {
 		rest().get("/getApprovedTimesheeets").to("direct:approvedTimesheeets");
 		from("direct:approvedTimesheeets").process(exchange -> {
 			List<Timesheet> approvedEmployees = services.getEmployeesByStatus("approved");
-
 			if (approvedEmployees != null && !approvedEmployees.isEmpty()) {
 				exchange.getMessage().setBody(approvedEmployees);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -270,7 +244,6 @@ public class Controller extends RouteBuilder {
 		rest().get("/pendingEmployees").to("direct:getPendingEmployees");
 		from("direct:getPendingEmployees").process(exchange -> {
 			List<Timesheet> pendingEmployees = services.getEmployeesByStatus("pending");
-
 			if (pendingEmployees != null && !pendingEmployees.isEmpty()) {
 				exchange.getMessage().setBody(pendingEmployees);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -304,10 +277,8 @@ public class Controller extends RouteBuilder {
 		rest().get("/getEmployeeCount").to("direct:getEmployee");
 		from("direct:getEmployee").process(exchange -> {
 			Long employeeCount = services.getCountOfEmployee();
-			System.out.println(employeeCount);
 			exchange.getMessage().setBody(employeeCount);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-
 		});
 
 // ---------------------------------------------------------RegisterCandidate After-Onboarding--------------------------------------------------------
@@ -318,33 +289,23 @@ public class Controller extends RouteBuilder {
 			public void process(Exchange exchange) throws Exception {
 				RegisterCandidate candidate = exchange.getIn().getBody(RegisterCandidate.class);
 				boolean candidateExists = services.candidateExists(candidate);
-
 				if (candidateExists) {
 					exchange.getMessage().setBody("Candidate already exists for " + candidate.getEmail());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
 				} else {
 					String randomPassword = services.generateAndSetRandomPassword();
-					System.out.println(randomPassword + " generated");
 					candidate.setPassword(randomPassword);
-
 					services.saveCandidate(candidate);
-					System.out.println("saved");
-					System.out.println("data " + candidate);
-
 					String recipientEmail = candidate.getEmail();
-
 					String generatedPassword = randomPassword;
 					String emailBody = services.getEmailBody(recipientEmail, generatedPassword);
-
 					exchange.getMessage().setBody(emailBody);
 					exchange.getMessage().setHeader("recipientEmail", recipientEmail);
 					exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 					ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 					producerTemplate.sendBodyAndHeaders("direct:sendingMail", exchange.getMessage().getBody(),
 							exchange.getMessage().getHeaders());
-
 				}
 			}
 		});
@@ -353,10 +314,6 @@ public class Controller extends RouteBuilder {
 				.process(exchange -> {
 					String recipientEmail = exchange.getMessage().getHeader("recipientEmail", String.class);
 					String emailBody = exchange.getIn().getBody(String.class);
-
-					System.out.println(emailBody);
-					System.out.println("Recipient Email: " + recipientEmail);
-
 					exchange.getMessage().setBody(emailBody);
 				}).recipientList(simple(
 						"smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}"));
@@ -368,7 +325,6 @@ public class Controller extends RouteBuilder {
 		from("direct:Candidate").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
-			System.out.println(email + "   " + password);
 			log.info("Received request with email: {} and password: {}", email, password);
 			RegisterCandidate candidate = services.getCandidateByEmail(email, password);
 			boolean isCandidateValid = services.verifyCandidate(candidate);
@@ -403,7 +359,6 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage()
 							.setBody(appliedCandidateInfo.getFullName() + " succesfully applied for this position");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 				}
 			}
 		}).end();
@@ -435,7 +390,6 @@ public class Controller extends RouteBuilder {
 			String email = exchange.getIn().getHeader("email", String.class);
 			String password = exchange.getIn().getHeader("password", String.class);
 			RegisterCandidate registerCandidate = services.findCandidateByEmail(email);
-
 			if (services.candidateExists(registerCandidate)) {
 				registerCandidate.setPassword(password);
 				services.saveCandidate(registerCandidate);
@@ -452,23 +406,19 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody("Please provide valid emailid");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			}
-
 		});
 
 //		------------------------------------------------------Register Job Before On-Boarding---------------------------------------------------------------------------
 
 		rest().post("/registerJob").type(CreateJob.class).to("direct:saveJob");
 		from("direct:saveJob").log("Job : ${body}").process(new Processor() {
-
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				CreateJob body = exchange.getIn().getBody(CreateJob.class);
 				CreateJob jobDetails = services.getJobDetails(body.getJobId());
-				System.out.println(jobDetails);
 				if (jobDetails != null) {
 					exchange.getMessage().setBody("Job details already exists for job id : " + body.getJobId());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
-
 				} else {
 					services.saveJob(body);
 					exchange.getMessage().setBody("Job details are saved for : " + body.getJobId());
@@ -476,19 +426,40 @@ public class Controller extends RouteBuilder {
 				}
 			}
 		});
-		
+
 //		----------------------------------Get All Jobs-----------------------------------
-		
+
 		rest().get("/getAllJobs").to("direct:processJobs");
 		from("direct:processJobs").log("Jobs List").process(new Processor() {
-            @Override
+			@Override
 			public void process(Exchange exchange) throws Exception {
 				Iterable<CreateJob> allJobs = services.getAllJobs();
-				System.out.println(allJobs);
 				exchange.getMessage().setBody(allJobs);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+		});
+		
+//		-----------------------------------Delete Job Details--------------------------------------------
+		 
+		rest().get("/deleteJobDetails").param().name("jobId").type(RestParamType.query).endParam()
+				.to("direct:deleteJobDetails");
+		from("direct:deleteJobDetails").log("deleted Job Details : ${body}").process(new Processor() {
+ 
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				String jobId = exchange.getIn().getHeader("jobId", String.class);
+				System.out.println(jobId);
+				boolean isDeleted = services.deleteJobDetails(jobId);
+				System.out.println(isDeleted);
+				if (!isDeleted) {
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
+					exchange.getMessage().setBody("Job with ID " + jobId + " not found or already deleted.");
+				} else {
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+					exchange.getMessage().setBody("Job with ID " + jobId + " successfully deleted.");
 				}
-         });
+			}
+		});
 
 //		-----------------------------------------------Register Candidate Before On-Boarding----------------------------------------------
 
@@ -497,7 +468,6 @@ public class Controller extends RouteBuilder {
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				RegisterCandidate registercandidate = exchange.getIn().getBody(RegisterCandidate.class);
-
 				if (!services.isValidMobileNumber(registercandidate.getMobileNumber())) {
 					exchange.getMessage().setBody("Please provide Valid Mobile Number");
 					return;
@@ -507,7 +477,6 @@ public class Controller extends RouteBuilder {
 							"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
 					return;
 				}
-
 				if (services.candidateExists(registercandidate)) {
 					exchange.getMessage().setBody("Candidate already exists with " + registercandidate.getEmail());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
@@ -524,73 +493,36 @@ public class Controller extends RouteBuilder {
 
 		rest().get("/listOfAppliedCandidates").to("direct:appliedCandidates");
 		from("direct:appliedCandidates").log("Get all applied candidates request received").process(new Processor() {
-
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				Iterable<AppliedCandidateInformation> allAppliedCandidates = services.getAllAppliedCandidates();
-				System.out.println(allAppliedCandidates);
 				exchange.getMessage().setBody(allAppliedCandidates);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
 		});
 
-//		--------------After clicking on reject should be deleted from each Applied candidate list------------------
-		rest().get("/deleteFromAppliedCandidateInformation").param().name("email").type(RestParamType.query).endParam().
-		to("direct:deleteCandidateFromAppliedCandidateInformation");
-		from("direct:deleteCandidateFromAppliedCandidateInformation").process(exchange ->{
-			String email=exchange.getIn().getHeader("email",String.class);
-			AppliedCandidateInformation candidateInfo=services.findByEmail(email);
-			email=candidateInfo.getEmail();
-			services.deleteCandidateFromAppliedCandidateInformation(email);
-			String emailBody = services.getDeleteAppliedCandidateEmailBody(candidateInfo);
- 
-			exchange.getMessage().setBody(emailBody);
-			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
-			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-			producerTemplate.sendBodyAndHeaders("direct:sendingRegretMail", exchange.getMessage().getBody(),
-					exchange.getMessage().getHeaders());
-		});
-
-
-
 //		------------------------After clicking on screening should be moved to Screening Before On-Boarding--------------------------
 
-		rest().post("/selectedForScreening").param().name("email").type(RestParamType.query).endParam().param()
-				.name("status").type(RestParamType.query).endParam().to("direct:selectedForScreeningRound");
-
+		rest().post("/selectedForScreening").param().name("email").type(RestParamType.query).endParam().to("direct:selectedForScreeningRound");
 		from("direct:selectedForScreeningRound").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
-
-			System.out.println("Received request for email: " + email);
-
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-
 			if (candidateInfo != null) {
-
 				String status = exchange.getIn().getHeader("status", String.class);
 				String newStatus = (status != null) ? status : "Screening";
 				candidateInfo.setStatus(newStatus);
 				services.saveAppliedCandidateInfo(candidateInfo);
 				exchange.getMessage().setBody(candidateInfo);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			}
-
-			else {
-				System.out.println("Candidate not found for email: " + email);
+			} else {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 			String emailBody = services.getScreeningEmailBody(candidateInfo);
-
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());
@@ -601,74 +533,37 @@ public class Controller extends RouteBuilder {
 		rest().get("/listOfScreeningCandidates").to("direct:screeningCandidates");
 		from("direct:screeningCandidates").log("Get all screening candidates request received")
 				.process(new Processor() {
-
 					@Override
 					public void process(Exchange exchange) throws Exception {
 						Iterable<AppliedCandidateInformation> allScreeningCandidates = services
 								.getAllScreeningCandidates();
-						System.out.println(allScreeningCandidates);
 						exchange.getMessage().setBody(allScreeningCandidates);
 						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 					}
 				});
-		
-//		--------------After clicking on reject should be deleted from each Screening candidate list------------------
-		
-		rest().get("/deleteFromScreeningCandidateInformation").param().name("email").type(RestParamType.query).endParam().
-		to("direct:deleteCandidateFromScreeningCandidateInformation");
-		from("direct:deleteCandidateFromScreeningCandidateInformation").process(exchange ->{
-			String email=exchange.getIn().getHeader("email",String.class);
-			AppliedCandidateInformation candidateInfo=services.findByEmail(email);
-			email=candidateInfo.getEmail();
-			services.deleteCandidateFromAppliedCandidateInformation(email);
-			String emailBody = services.getDeleteScreeningCandidateEmailBody(candidateInfo);
- 
-			exchange.getMessage().setBody(emailBody);
-			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
-			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-			producerTemplate.sendBodyAndHeaders("direct:sendingRegretMail", exchange.getMessage().getBody(),
-					exchange.getMessage().getHeaders());
-		});
-
 
 //		--------------After clicking on Selected should be moved to technicalOne Before On-Boarding--------------------
 
-		rest().post("/selectedForTechnicalOne").param().name("email").type(RestParamType.query).endParam().param()
-				.name("status").type(RestParamType.query).endParam().to("direct:selectedForTechnicalRoundOne");
-
+		rest().post("/selectedForTechnicalOne").param().name("email").type(RestParamType.query).endParam().to("direct:selectedForTechnicalRoundOne");
 		from("direct:selectedForTechnicalRoundOne").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
-
-			System.out.println("Received request for email: " + email);
-
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-
 			if (candidateInfo != null) {
-
 				String status = exchange.getIn().getHeader("status", String.class);
 				String newStatus = (status != null) ? status : "TechnicalRoundOne";
 				candidateInfo.setStatus(newStatus);
 				services.saveAppliedCandidateInfo(candidateInfo);
 				exchange.getMessage().setBody(candidateInfo);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			}
-
-			else {
-				System.out.println("Candidate not found for email: " + email);
+			} else {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 			String emailBody = services.getTechnicalRoundOneEmailBody(candidateInfo);
-
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());
@@ -679,73 +574,37 @@ public class Controller extends RouteBuilder {
 		rest().get("/listOfTechnicalRoundOneCandidates").to("direct:technicalRoundOneCandidates");
 		from("direct:technicalRoundOneCandidates").log("Get all technical round one candidates request received")
 				.process(new Processor() {
-
 					@Override
 					public void process(Exchange exchange) throws Exception {
 						Iterable<AppliedCandidateInformation> getAllTechnicalOneCandidates = services
 								.getAllTechnicalOneCandidates();
-						System.out.println(getAllTechnicalOneCandidates);
 						exchange.getMessage().setBody(getAllTechnicalOneCandidates);
 						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 					}
 				});
-		
-//		--------------After clicking on reject should be deleted from each Technical one candidate list------------------
-		
-		rest().get("/deleteFromTechnicalOneCandidateInformation").param().name("email").type(RestParamType.query).endParam().
-		to("direct:deleteCandidateFromTechnicalOneCandidateInformation");
-		from("direct:deleteCandidateFromTechnicalOneCandidateInformation").process(exchange ->{
-			String email=exchange.getIn().getHeader("email",String.class);
-			AppliedCandidateInformation candidateInfo=services.findByEmail(email);
-			email=candidateInfo.getEmail();
-			services.deleteCandidateFromAppliedCandidateInformation(email);
-			String emailBody = services.getDeleteTechnicalOneCandidateEmailBody(candidateInfo);
- 
-			exchange.getMessage().setBody(emailBody);
-			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
-			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-			producerTemplate.sendBodyAndHeaders("direct:sendingRegretMail", exchange.getMessage().getBody(),
-					exchange.getMessage().getHeaders());
-		});
 
 //		--------------After clicking on Selected should be moved to technicalTwo Before On-Boarding--------------------
 
-		rest().post("/selectedForTechnicalTwo").param().name("email").type(RestParamType.query).endParam().param()
-				.name("status").type(RestParamType.query).endParam().to("direct:selectedForTechnicalRoundTwo");
-
+		rest().post("/selectedForTechnicalTwo").param().name("email").type(RestParamType.query).endParam().to("direct:selectedForTechnicalRoundTwo");
 		from("direct:selectedForTechnicalRoundTwo").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
-
-			System.out.println("Received request for email: " + email);
-
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-
 			if (candidateInfo != null) {
-
 				String status = exchange.getIn().getHeader("status", String.class);
 				String newStatus = (status != null) ? status : "TechnicalRoundTwo";
 				candidateInfo.setStatus(newStatus);
 				services.saveAppliedCandidateInfo(candidateInfo);
 				exchange.getMessage().setBody(candidateInfo);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			}
-
-			else {
-				System.out.println("Candidate not found for email: " + email);
+			} else {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 			String emailBody = services.getTechnicalRoundTwoEmailBody(candidateInfo);
-
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());
@@ -756,73 +615,37 @@ public class Controller extends RouteBuilder {
 		rest().get("/listOfTechnicalRoundTwoCandidates").to("direct:technicalRoundTwoCandidates");
 		from("direct:technicalRoundTwoCandidates").log("Get all technical round two candidates request received")
 				.process(new Processor() {
-
 					@Override
 					public void process(Exchange exchange) throws Exception {
 						Iterable<AppliedCandidateInformation> getAllTechnicalTwoCandidates = services
 								.getAllTechnicalTwoCandidates();
-						System.out.println(getAllTechnicalTwoCandidates);
 						exchange.getMessage().setBody(getAllTechnicalTwoCandidates);
 						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 					}
 				});
-		
-//		--------------After clicking on reject should be deleted from each Technical two candidate list------------------
-		
-		rest().get("/deleteFromTechnicalTwoCandidateInformation").param().name("email").type(RestParamType.query).endParam().
-		to("direct:deleteCandidateFromTechnicalTwoCandidateInformation");
-		from("direct:deleteCandidateFromTechnicalTwoCandidateInformation").process(exchange ->{
-			String email=exchange.getIn().getHeader("email",String.class);
-			AppliedCandidateInformation candidateInfo=services.findByEmail(email);
-			email=candidateInfo.getEmail();
-			services.deleteCandidateFromAppliedCandidateInformation(email);
-			String emailBody = services.getDeleteTechnicalTwoCandidateEmailBody(candidateInfo);
- 
-			exchange.getMessage().setBody(emailBody);
-			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
-			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-			producerTemplate.sendBodyAndHeaders("direct:sendingRegretMail", exchange.getMessage().getBody(),
-					exchange.getMessage().getHeaders());
-		});
 
 //		--------------After clicking on Selected should be moved to HR Before On-Boarding--------------------
 
-		rest().post("/selectedForHR").param().name("email").type(RestParamType.query).endParam().param().name("status")
-				.type(RestParamType.query).endParam().to("direct:selectedForHRRound");
-
+		rest().post("/selectedForHR").param().name("email").type(RestParamType.query).endParam().to("direct:selectedForHRRound");
 		from("direct:selectedForHRRound").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
-
-			System.out.println("Received request for email: " + email);
-
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-
 			if (candidateInfo != null) {
-
 				String status = exchange.getIn().getHeader("status", String.class);
 				String newStatus = (status != null) ? status : "HR";
 				candidateInfo.setStatus(newStatus);
 				services.saveAppliedCandidateInfo(candidateInfo);
 				exchange.getMessage().setBody(candidateInfo);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			}
-
-			else {
-				System.out.println("Candidate not found for email: " + email);
+			} else {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 			String emailBody = services.getHREmailBody(candidateInfo);
-
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());
@@ -832,66 +655,62 @@ public class Controller extends RouteBuilder {
 
 		rest().get("/listOfHRRoundCandidates").to("direct:hRRoundCandidates");
 		from("direct:hRRoundCandidates").log("Get all HR round candidates request received").process(new Processor() {
-
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				Iterable<AppliedCandidateInformation> getAllHRCandidates = services.getAllHRCandidates();
-				System.out.println(getAllHRCandidates);
 				exchange.getMessage().setBody(getAllHRCandidates);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
 		});
-		
-//		--------------After clicking on reject should be deleted from each HR candidate list------------------
-		
-		rest().get("/deleteFromHRCandidateInformation").param().name("email").type(RestParamType.query).endParam().
-		to("direct:deleteCandidateFromHRCandidateInformation");
-		from("direct:deleteCandidateFromHRCandidateInformation").process(exchange ->{
-			String email=exchange.getIn().getHeader("email",String.class);
-			AppliedCandidateInformation candidateInfo=services.findByEmail(email);
-			email=candidateInfo.getEmail();
-			services.deleteCandidateFromAppliedCandidateInformation(email);
-			String emailBody = services.getDeleteHRCandidateEmailBody(candidateInfo);
- 
-			exchange.getMessage().setBody(emailBody);
-			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
-			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
- 
-			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-			producerTemplate.sendBodyAndHeaders("direct:sendingRegretMail", exchange.getMessage().getBody(),
-					exchange.getMessage().getHeaders());
-		});
 
 //		--------------After clicking on Selected should be moved to Selected Before On-Boarding--------------------
-		rest().post("/candidatesSelectedInAllRounds").param().name("email").type(RestParamType.query).endParam().param().name("status")
-				.type(RestParamType.query).endParam().to("direct:selectedInAllRounds");
-
+		rest().post("/candidatesSelectedInAllRounds").param().name("email").type(RestParamType.query).endParam().to("direct:selectedInAllRounds");
 		from("direct:selectedInAllRounds").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
-
-			System.out.println("Received request for email: " + email);
-
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-
 			if (candidateInfo != null) {
-
 				String status = exchange.getIn().getHeader("status", String.class);
 				String newStatus = (status != null) ? status : "Selected";
 				candidateInfo.setStatus(newStatus);
 				services.saveAppliedCandidateInfo(candidateInfo);
 				exchange.getMessage().setBody(candidateInfo);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			}
-
-			else {
-				System.out.println("Candidate not found for email: " + email);
+			} else {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-
 			String emailBody = services.getSelectedEmailBody(candidateInfo);
+			exchange.getMessage().setBody(emailBody);
+			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
+			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+					exchange.getMessage().getHeaders());
+		});
 
+//		-----------------------Selected Candidate List--------------------
+
+		rest().get("/listOfSelectedCandidates").to("direct:selectedCandidates");
+		from("direct:selectedCandidates").log("Get all selected candidates request received").process(new Processor() {
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				Iterable<AppliedCandidateInformation> getAllSelectedCandidates = services.getAllSelectedCandidates();
+				exchange.getMessage().setBody(getAllSelectedCandidates);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+		});
+
+//	--------------After clicking reject delete record and send mail------------------
+
+		rest().get("/deleteRecord").param().name("email").type(RestParamType.query).endParam().to("direct:deleteCandidateInformation");
+		from("direct:deleteCandidateInformation").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
+
+			String subject = services.deleteCandidateInformation(candidateInfo.getEmail(), candidateInfo.getStatus());
+			String emailBody = services.emailBodyForDelete(candidateInfo, candidateInfo.getStatus());
+			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
@@ -900,20 +719,6 @@ public class Controller extends RouteBuilder {
 			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());
-		});
-		
-//		-----------------------Selected Candidate List--------------------
-
-		rest().get("/listOfSelectedCandidates").to("direct:selectedCandidates");
-		from("direct:selectedCandidates").log("Get all selected candidates request received").process(new Processor() {
-
-			@Override
-			public void process(Exchange exchange) throws Exception {
-				Iterable<AppliedCandidateInformation> getAllSelectedCandidates = services.getAllSelectedCandidates();
-				System.out.println(getAllSelectedCandidates);
-				exchange.getMessage().setBody(getAllSelectedCandidates);
-				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-			}
 		});
 
 	}
