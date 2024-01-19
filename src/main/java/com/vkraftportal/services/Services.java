@@ -1,6 +1,5 @@
 package com.vkraftportal.services;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -81,10 +80,7 @@ public class Services {
 		int size = 10;
 		byte[] randomBytes = new byte[size];
 		secureRandom.nextBytes(randomBytes);
-
 		String generatedPassword = Base64.getEncoder().encodeToString(randomBytes).substring(0, size);
-
-		System.out.println(generatedPassword);
 		return generatedPassword;
 	}
 
@@ -124,24 +120,12 @@ public class Services {
 	}
 
 	public boolean isValidPassword(String password) {
-
 		String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-={};':\"\\|,.<>?/]).{8,}$";
 		return password.matches(regex);
 	}
 
 	public boolean isValidMobileNumber(String mobileNumber) {
-
 		return mobileNumber.matches("\\d{10}");
-	}
-
-
-	public String getEmailBodyForTechOne(String recipientEmail, String fullname, String role) {
-		return "Dear Candidate " + fullname + ",\n\n" + "We're eager to move forward with your application for the "
-				+ role + "position at Vkraft Software Services."
-				+ " Kindly acknowledge this email to confirm your attendance. \n\n"
-				+ "Looking forward to the interview!. If you have any questions or need assistance, feel free to contact us.\n\n"
-				+ "Thank you!\n\n" + "Best regards,\n"
-				+ "HR Team, \nVkraft Software Services Pvt Ltd\nwww.vkraftsoftware.com\nwww.kraftsoftwaresolution.com";
 	}
 
 //	--------------------------------------RegisterEmployee Services-----------------------------------------
@@ -151,7 +135,6 @@ public class Services {
 	}
 
 	public boolean employeeExists(RegisterEmployee employee) {
-
 		if (employeeRepo.findByEmployeeNumber(employee.getEmployeeNumber()) != null) {
 			return true;
 		} else {
@@ -183,7 +166,6 @@ public class Services {
 
 	public Iterable<RegisterEmployee> getAllEmployees() {
 		Iterable<RegisterEmployee> findAll = employeeRepo.findAll();
-
 		return findAll;
 	}
 
@@ -218,7 +200,6 @@ public class Services {
 	}
 
 	public boolean timesheetExists(Timesheet timesheetDataToSave) {
-
 		if (timesheetRepo.findByEmployeeNumberAndMonthAndYear(timesheetDataToSave.getEmployeeNumber(),
 				timesheetDataToSave.getMonth(), timesheetDataToSave.getYear()) != null) {
 			return true;
@@ -257,106 +238,25 @@ public class Services {
 	}
 
 	public boolean appliedCandidateInfoExists(AppliedCandidateInformation appliedCandidateInfo) {
-
-		if (appliedCandidaterepo.findByJobIdAndFullName(appliedCandidateInfo.getJobId(),
-				appliedCandidateInfo.getFullName()) != null) {
+		if (appliedCandidaterepo.findByJobIdAndEmail(appliedCandidateInfo.getJobId(),
+				appliedCandidateInfo.getEmail()) != null) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	public  String convertToBase64(String filePath) throws IOException {
+	public String convertToBase64(String filePath) throws IOException {
 		byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
 		return Base64.getEncoder().encodeToString(fileContent);
 	}
-	
-	
-	public String getScreeningEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "Congratulations! Your profile is shortlisted.\n\n"
-				+ "Please be prepared for the upcoming screening process. If you have any questions or need further information, feel free to contact us.\n\n"
-				+ "Thank you for your interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
-				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
-	}
 
-	public String getTechnicalRoundOneEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "Congratulations! You have successfully cleared the Screening round.\n\n"
-				+ "Please be prepared for the upcoming Technical round one. If you have any questions or need further information, feel free to contact us.\n\n"
-				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
-				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
-	}
-
-	public String getTechnicalRoundTwoEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "Congratulations! You have successfully cleared the Technical round one.\n\n"
-				+ "Please be prepared for the upcoming Technical round two. If you have any questions or need further information, feel free to contact us.\n\n"
-				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
-				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
-	}
-
-	public String getHREmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "Congratulations! You have successfully cleared the Technical round two.\n\n"
-				+ "Please be prepared for the upcoming HR round. If you have any questions or need further information, feel free to contact us.\n\n"
-				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
-				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
-	}
-
-	public String getSelectedEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n" + "Congratulations! You have successfully cleared the HR round.\n\n"
-				+ "Further details will be provided shortly. If you have any questions or need further information, feel free to contact us.\n\n"
-				+ "Thank you for your continued interest and best of luck!\n\n" + "Best regards,\n" + "HR Team,\n"
-				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
-	}
-
-//	public String getDeleteAppliedCandidateEmailBody(AppliedCandidateInformation body) {
-//		return "Hi " + body.getFullName() + ",\n\n"
-//				+ "We regret to inform you that your eligibility criteria didn't match the requirements.\n\n"
-//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-//				+ "www.kraftsoftwaresolution.com";
-//	}
-//
-//	public String getDeleteScreeningCandidateEmailBody(AppliedCandidateInformation body) {
-//		return "Hi " + body.getFullName() + ",\n\n"
-//				+ "We regret to inform you that you are not qualified in the screening round.\n\n"
-//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-//				+ "www.kraftsoftwaresolution.com";
-//	}
-	
-//	public String getDeleteTechnicalOneCandidateEmailBody(AppliedCandidateInformation body) {
-//		return "Hi " + body.getFullName() + ",\n\n"
-//				+ "We regret to inform you that you are not qualified in the first round of technical interview.\n\n"
-//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-//				+ "www.kraftsoftwaresolution.com";
-//	}
-	
-//	public String getDeleteTechnicalTwoCandidateEmailBody(AppliedCandidateInformation body) {
-//		return "Hi " + body.getFullName() + ",\n\n"
-//				+ "We regret to inform you that you are not qualified in the second round of technical interview.\n\n"
-//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-//				+ "www.kraftsoftwaresolution.com";
-//	}
-	
-//	public String getDeleteHRCandidateEmailBody(AppliedCandidateInformation body) {
-//		return "Hi " + body.getFullName() + ",\n\n"
-//				+ "We regret to inform you that you are not qualified in the HR round.\n\n"
-//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-//				+ "www.kraftsoftwaresolution.com";
-//	}
-	
 	public AppliedCandidateInformation findByEmail(String email) {
 		AppliedCandidateInformation candidateEmail = appliedCandidaterepo.findByEmail(email);
 		System.out.println(candidateEmail + "found");
 		return candidateEmail;
 	}
-	
+
 	public Iterable<AppliedCandidateInformation> getAllAppliedCandidates() {
 		String str = "applied";
 		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
@@ -392,69 +292,218 @@ public class Services {
 		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
 		return findByStatus;
 	}
-	
-	public String deleteCandidateInformation(String email,String status) {
+
+	public String deleteCandidateInformation(String email, String status) {
 		appliedCandidaterepo.deleteByEmail(email);
 		String subject = null;
-		if("applied".equals(status)) {
-			subject="Regret Mail For Not Shortlisted";
-         }
-		if("Screening".equals(status)) {
-			subject="Regret Mail For Not Selecting In Screening";
-         }
-		if("TechnicalRoundOne".equals(status)) {
-			subject="Regret Mail For Not Selected In Techical Round One";
-         }
-		if("TechnicalRoundTwo".equals(status)) {
-			subject="Regret Mail For Not Selected In Technical Round Two";
-         }
-		if("HR".equals(status)) {
-			subject="Regret Mail For Not Selected In HR Round";
+		if ("applied".equals(status)) {
+			subject = "Thank you for your interest in VKRAFT Software Services";
+		}
+		if ("Screening".equals(status)) {
+			subject = "Thank you for your interest in VKRAFT Software Services";
+		}
+		if ("TechnicalRoundOne".equals(status)) {
+			subject = "Thank you for your interest in VKRAFT Software Services";
+		}
+		if ("TechnicalRoundTwo".equals(status)) {
+			subject = "Thank you for your interest in VKRAFT Software Services";
+		}
+		if ("HR".equals(status)) {
+			subject = "Thank you for your interest in VKRAFT Software Services";
+		}
+		return subject;
+	}
+
+	public String emailBodyForDelete(AppliedCandidateInformation body) {
+		String emailBody = null;
+		String fullName = body.getFullName();
+		String status = body.getStatus();
+		if ("applied".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "Thank you for your interest. We regret to inform you that at this time, your application will not be"
+					+ " further considered for this role.We sincerely appreciate your interest in Vkraft,"
+					+ " and we encourage you to keep an eye on our career opportunities. Your skills and experience may be"
+					+ " an excellent fit for future openings, and we would welcome the opportunity to consider your application again..\n\n"
+					+ "Thank you for considering us as your potential employer, and we wish you success in your job search."
+					+ " If you have any questions or would like feedback on your application, please do not hesitate to reach out.\n\n"
+					+ "We value your understanding and hope you find the perfect match for your career goals in the near future.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+		}
+		if ("Screening".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "We appreciate the time and effort you invested in the screening process."
+					+ " After careful consideration, we regret to inform you that your application did not progress to the next stage."
+					+ " We genuinely appreciate your interest in joining our team and we encourage you to keep an eye on our career opportunities. "
+					+ "Your skills and experience may be an excellent fit for future openings, and we would welcome the opportunity "
+					+ "to consider your application again..\n\n"
+					+ "Thank you for considering us as your potential employer, and we wish you success in your job search."
+					+ " If you have any questions or would like feedback on your application, please do not hesitate to reach out.\n\n"
+					+ "We value your understanding and hope you find the perfect match for your career goals in the near future.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+		}
+		if ("TechnicalRoundOne".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "Thank you for your participation in the First Technical Interview."
+					+ " After careful evaluation and consideration, we regret to inform you that your application did not progress to the next stage."
+					+ " We appreciate the effort and time you dedicated to the interview process. Your skills and experience are commendable. "
+					+ "Please be assured that this decision does not diminish your accomplishments and capabilities.\n\n "
+					+ "We encourage you to continue pursuing your career goals, and we wish you success in all your future endeavors."
+					+ " If you have any inquiries or would like constructive feedback, please feel free to reach out.\n\n"
+					+ "Thank you for considering VKRAFT Software Services. We value the opportunity to connect with you during the hiring process.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+		}
+		if ("TechnicalRoundTwo".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "Thank you for your participation in the Second Technical Interview."
+					+ " After careful evaluation and consideration, we regret to inform you that your application did not progress to the next stage."
+					+ " We appreciate the effort and time you dedicated to the interview process. Your skills and experience are commendable. "
+					+ "Please be assured that this decision does not diminish your accomplishments and capabilities.\n\n "
+					+ "We encourage you to continue pursuing your career goals, and we wish you success in all your future endeavors."
+					+ " If you have any inquiries or would like constructive feedback, please feel free to reach out.\n\n"
+					+ "Thank you for considering VKRAFT Software Services. We value the opportunity to connect with you during the hiring process.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+		}
+		if ("HR".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "Thank you for your participation in the HR Interview which is the final round of interview process."
+					+ " After careful evaluation and consideration, we regret to inform you that your application did not progress to the next stage."
+					+ " We appreciate the effort and time you dedicated to the interview process. Your skills and experience are commendable. "
+					+ "Please be assured that this decision does not diminish your accomplishments and capabilities.\n\n "
+					+ "We encourage you to continue pursuing your career goals, and we wish you success in all your future endeavors."
+					+ " If you have any inquiries or would like constructive feedback, please feel free to reach out.\n\n"
+					+ "Thank you for considering VKRAFT Software Services. We value the opportunity to connect with you during the hiring process.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+		}
+		return emailBody;
+	}
+	
+	public String selectCandidateInformation(String status, String jobId) {
+		appliedCandidaterepo.findByJobId(jobId);
+		String subject = null;
+		if ("applied".equals(status)) {
+			subject = "Application for " + jobId + " is Received Successfully";
+		}
+		if ("Screening".equals(status)) {
+			subject = "Congratulations!  You've Been Selected in the Screening Process";
+		}
+		if ("TechnicalRoundOne".equals(status)) {
+			subject = "Congratulations!  You've Been Selected in the First Technical Interview";
+		}
+		if ("TechnicalRoundTwo".equals(status)) {
+			subject = "Congratulations!  You've Been Selected in the Second Technical Interview";
+		}
+		if ("HR".equals(status)) {
+			subject = "Congratulations!  You've Been Selected in the HR Interview";
+		}
+		if ("Selected".equals(status)) {
+			subject = "Heartfelt Congratulations! You've Successfully Conquered Every Round of Interviews";
 		}
 		return subject;
 	}
 	
-	public String emailBodyForDelete(AppliedCandidateInformation body, String status){
+	public String emailBodyForSelect(AppliedCandidateInformation body) {
 		String emailBody = null;
-		 String fullName = body.getFullName();
-		if("applied".equals(status)) {
-			emailBody= "Hi " + fullName + ",\n\n"
-					+ "We regret to inform you that your eligibility criteria didn't match the requirements.\n\n"
-					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-					+ "www.kraftsoftwaresolution.com";
+		String fullName = body.getFullName();
+		String status = body.getStatus();
+		String role = body.getRole();
+		if ("applied".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "Hope this finds you well. Bravo! You are eligible to be part of our recruitment process. We would like to"
+					+ " extend our gratitude for your interest in joining the Vkraft team and for taking the time to submit your application for the" + role +".\n\n"
+					+ " We wanted to inform you that we have successfully received your application. Our team is currently in the process "
+					+ "of reviewing all applications thoroughly to identify the candidates who most qualified and experienced for the role "
+					+ "and who are a good fit for our company culture. This can take some time, as we strive to ensure a fair and "
+					+ "comprehensive assessment of all applicants.\n\n"
+					+ "Please rest assured that your application is important to us, and we will carefully consider your qualifications "
+					+ "and experience in relation to the position's requirements. If your qualifications meet the requirements of the role,"
+					+ " we will be in touch with you to discuss the next steps in the recruitment process.\n\n"
+					+ "In the meantime, if you have any questions or wish to provide additional information, please feel free to reach "
+					+ "out to our Human Resources team at HR@vkraftsoftware.com\n\n"
+					+ "We're excited to hear that you're interested in working at Vkraft! We'll be in touch soon.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
-		
-		if("Screening".equals(status)) {
-			emailBody = "Hi " + fullName + ",\n\n"
-					+ "We regret to inform you that you are not qualified in the screening round.\n\n"
-					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-					+ "www.kraftsoftwaresolution.com";
+		if ("Screening".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "I hope this email finds you well. We are pleased to inform you that you have successfully qualified in the screening "
+					+ "round for the " + role+".\n\n"
+					+ "Your application and performance in the screening process have been impressive, and we are excited about the "
+					+ "prospect of getting to know you better in the upcoming stages of our selection process.\n\n"
+					+ "The next step in our process is the technical interview, where we will delve deeper into your technical skills and expertise."
+					+ " We encourage you to prepare thoroughly for this stage, as it will provide an opportunity for us to assess your abilities in "
+					+ "more detail.\n\n"
+					+ "We will be in touch shortly to schedule the technical interview and to provide you with any additional details you may need. "
+					+ "If you have any questions or require further information, please feel free to reach out.\n\n"
+					+ "Congratulations once again on your success in the screening round, and we look forward to seeing you shine in the technical interview.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
-		if("TechnicalRoundOne".equals(status)) {
-			emailBody = "Hi " + fullName + ",\n\n"
-					+ "We regret to inform you that you are not qualified in the first round of technical interview.\n\n"
-					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-					+ "www.kraftsoftwaresolution.com";
+		if ("TechnicalRoundOne".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "I trust this message finds you well. We are delighted to inform you that you have successfully qualified in the first "
+					+ "round of technical interviews for the " + role + ".\n\n"
+					+ " Your technical proficiency and problem-solving abilities have stood out, and we are impressed with your performance."
+					+ " Congratulations on this achievement!\n\n"
+					+ "The next step in our evaluation process is the second technical interview, where we will delve deeper into specific "
+					+ "aspects of your skill set. We encourage you to continue your preparations and to focus on areas that may be "
+					+ "highlighted in this upcoming round.\n\n "
+					+ "We will be reaching out shortly to schedule the second technical interview and to provide you with any additional details you may need.\n\n"
+					+ "If you have any questions or require further information, please feel free to reach out. Once again, "
+					+ "congratulations on your success in the first technical interview, and we look forward to seeing you excel in the next round.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
-		if("TechnicalRoundTwo".equals(status)) {
-			emailBody = "Hi " + fullName + ",\n\n"
-					+ "We regret to inform you that you are not qualified in the second round of technical interview.\n\n"
-					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-					+ "www.kraftsoftwaresolution.com";
+		if ("TechnicalRoundTwo".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "I hope this email finds you in good spirits. It is with great pleasure that we share the exciting news – you have "
+					+ "successfully qualified in the second round of technical interviews for the " + role + ".\n\n"
+					+ "Your technical expertise, problem-solving skills, and overall performance have truly impressed our team. "
+					+ "Congratulations on reaching this significant milestone!\n\n"
+					+ "The next phase of our selection process is the HR interview, where we aim to understand more about you as an individual "
+					+ "and how your skills align with our team culture. We recommend preparing for questions related to your experiences, "
+					+ "work style, and your aspirations.\n\n "
+					+ "We will be in touch shortly to schedule the HR interview and provide you with any additional details needed for your preparation.\n\n"
+					+ "Should you have any questions or require further information, please don't hesitate to reach out. Once again, "
+					+ "congratulations on your success in the second technical interview, and we look forward to getting to know you better in the HR round.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
-		if("HR".equals(status)) {
-			emailBody = "Hi " +fullName + ",\n\n"
-					+ "We regret to inform you that you are not qualified in the HR round.\n\n"
-					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-					+ "www.kraftsoftwaresolution.com";
+		if ("HR".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "I trust this email finds you well. It is with great pleasure that we inform you of your successful qualification in the HR interview "
+					+ "for the " + role + ".\n\n"
+					+ " Your impressive communication skills, professionalism, and the insights you shared during the interview have reinforced our "
+					+ "belief in your potential contribution to our team. Congratulations on this significant achievement!\n\n"
+					+ "As we move forward in the final stages of our selection process, please be assured that your application is currently "
+					+ "under careful consideration. We are thoroughly evaluating all aspects to ensure that we make the most informed decision.\n\n "
+					+ "We appreciate your patience during this process and anticipate providing you with the final decision soon. If you have any "
+					+ "questions or need further information in the meantime, please feel free to reach out.\n\n"
+					+ "Once again, congratulations on your success in the HR interview. We are excited about the prospect of potentially welcoming you "
+					+ "to our team.\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
+		}
+		if ("Selected".equals(status)) {
+			emailBody = "Dear " + fullName + ",\n\n"
+					+ "I am thrilled to officially extend my heartfelt congratulations to you! After a thorough and competitive selection process, "
+					+ "we are delighted to offer you the position of " + role + ".\n\n"
+					+ "Your exceptional skills, experience, and the impressive way you navigated through each stage of the interview process have "
+					+ "truly set you apart. We are confident that your contributions will make a significant impact on our team and organization.\n\n "
+					+ "In the coming days, our HR team will be in touch to discuss the formalities, including the issuance of the official offer letter, "
+					+ "your start date, compensation details, and any additional information you may need. If you have any immediate questions or concerns, "
+					+ "please feel free to reach out.\n\n"
+					+ "Once again, congratulations on this well-deserved achievement! We are excited to welcome you to VKRAFT Software Services and "
+					+ "look forward to a successful and fulfilling journey together. \n\n"
+					+ "Welcome aboard!\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
 		return emailBody;
-		
 	}
 
 //	---------------------------------------CreateJob------------------------------------------
@@ -467,17 +516,16 @@ public class Services {
 	public void saveJob(CreateJob job) {
 		jobRepo.save(job);
 	}
-	
+
 	public Iterable<CreateJob> getAllJobs() {
 		Iterable<CreateJob> findAll = jobRepo.findAll();
 		System.out.println(findAll);
 		return findAll;
 	}
-	
+
 	public boolean deleteJobDetails(String jobId) {
 		CreateJob findByJobId = jobRepo.findByJobId(jobId);
 		jobRepo.delete(findByJobId);
 		return true;
 	}
-
 }

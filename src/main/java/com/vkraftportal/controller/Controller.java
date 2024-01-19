@@ -359,6 +359,16 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage()
 							.setBody(appliedCandidateInfo.getFullName() + " succesfully applied for this position");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+					String subject = services.selectCandidateInformation(appliedCandidateInfo.getStatus(), appliedCandidateInfo.getJobId());
+					String emailBody = services.emailBodyForSelect(appliedCandidateInfo);
+					exchange.getMessage().setHeader("emailSubject",subject);
+					exchange.getMessage().setBody(emailBody);
+					exchange.getMessage().setHeader("recipientEmail", appliedCandidateInfo.getEmail());
+					exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
+					ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+					producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+							exchange.getMessage().getHeaders());
 				}
 			}
 		}).end();
@@ -518,7 +528,9 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-			String emailBody = services.getScreeningEmailBody(candidateInfo);
+			String subject = services.selectCandidateInformation(candidateInfo.getStatus(), candidateInfo.getJobId());
+			String emailBody = services.emailBodyForSelect(candidateInfo);
+			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
@@ -559,7 +571,9 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-			String emailBody = services.getTechnicalRoundOneEmailBody(candidateInfo);
+			String subject = services.selectCandidateInformation(candidateInfo.getStatus(), candidateInfo.getJobId());
+			String emailBody = services.emailBodyForSelect(candidateInfo);
+			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
@@ -600,7 +614,9 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-			String emailBody = services.getTechnicalRoundTwoEmailBody(candidateInfo);
+			String subject = services.selectCandidateInformation(candidateInfo.getStatus(), candidateInfo.getJobId());
+			String emailBody = services.emailBodyForSelect(candidateInfo);
+			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
@@ -641,7 +657,9 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-			String emailBody = services.getHREmailBody(candidateInfo);
+			String subject = services.selectCandidateInformation(candidateInfo.getStatus(), candidateInfo.getJobId());
+			String emailBody = services.emailBodyForSelect(candidateInfo);
+			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
@@ -679,7 +697,9 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody("Error: Candidate with email '" + email + "' not found");
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
-			String emailBody = services.getSelectedEmailBody(candidateInfo);
+			String subject = services.selectCandidateInformation(candidateInfo.getStatus(), candidateInfo.getJobId());
+			String emailBody = services.emailBodyForSelect(candidateInfo);
+			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
@@ -707,15 +727,13 @@ public class Controller extends RouteBuilder {
 		from("direct:deleteCandidateInformation").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-
 			String subject = services.deleteCandidateInformation(candidateInfo.getEmail(), candidateInfo.getStatus());
-			String emailBody = services.emailBodyForDelete(candidateInfo, candidateInfo.getStatus());
+			String emailBody = services.emailBodyForDelete(candidateInfo);
 			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
 			exchange.getMessage().setHeader("recipientEmail", candidateInfo.getEmail());
 			exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-
 			ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());

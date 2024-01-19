@@ -9,12 +9,14 @@ import com.vkraftportal.model.AppliedCandidateInformation;
 
 public interface AppliedCandidateInformationRepo extends ElasticsearchRepository<AppliedCandidateInformation, Integer>{
 	
-	AppliedCandidateInformation findByJobIdAndFullName(String jobId, String fullName);
+	AppliedCandidateInformation findByJobIdAndEmail(String jobId, String email);
 
 	List<AppliedCandidateInformation> deleteByEmail(String email);
 
 	Iterable<AppliedCandidateInformation> findByStatus(String str);
 
 	AppliedCandidateInformation findByEmail(String email);
+	
+	AppliedCandidateInformation findByJobId(String jobId);
 
 }
