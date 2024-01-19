@@ -311,71 +311,50 @@ public class Services {
 				+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 	}
 
-	public String getDeleteAppliedCandidateEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "We regret to inform you that your eligibility criteria didn't match the requirements.\n\n"
-				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-				+ "www.kraftsoftwaresolution.com";
-	}
-
-	public String getDeleteScreeningCandidateEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "We regret to inform you that you are not qualified in the screening round.\n\n"
-				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-				+ "www.kraftsoftwaresolution.com";
-	}
+//	public String getDeleteAppliedCandidateEmailBody(AppliedCandidateInformation body) {
+//		return "Hi " + body.getFullName() + ",\n\n"
+//				+ "We regret to inform you that your eligibility criteria didn't match the requirements.\n\n"
+//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+//				+ "www.kraftsoftwaresolution.com";
+//	}
+//
+//	public String getDeleteScreeningCandidateEmailBody(AppliedCandidateInformation body) {
+//		return "Hi " + body.getFullName() + ",\n\n"
+//				+ "We regret to inform you that you are not qualified in the screening round.\n\n"
+//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+//				+ "www.kraftsoftwaresolution.com";
+//	}
 	
-	public String getDeleteTechnicalOneCandidateEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "We regret to inform you that you are not qualified in the first round of technical interview.\n\n"
-				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-				+ "www.kraftsoftwaresolution.com";
-	}
+//	public String getDeleteTechnicalOneCandidateEmailBody(AppliedCandidateInformation body) {
+//		return "Hi " + body.getFullName() + ",\n\n"
+//				+ "We regret to inform you that you are not qualified in the first round of technical interview.\n\n"
+//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+//				+ "www.kraftsoftwaresolution.com";
+//	}
 	
-	public String getDeleteTechnicalTwoCandidateEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "We regret to inform you that you are not qualified in the second round of technical interview.\n\n"
-				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-				+ "www.kraftsoftwaresolution.com";
-	}
+//	public String getDeleteTechnicalTwoCandidateEmailBody(AppliedCandidateInformation body) {
+//		return "Hi " + body.getFullName() + ",\n\n"
+//				+ "We regret to inform you that you are not qualified in the second round of technical interview.\n\n"
+//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+//				+ "www.kraftsoftwaresolution.com";
+//	}
 	
-	public String getDeleteHRCandidateEmailBody(AppliedCandidateInformation body) {
-		return "Hi " + body.getFullName() + ",\n\n"
-				+ "We regret to inform you that you are not qualified in the HR round.\n\n"
-				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
-				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
-				+ "www.kraftsoftwaresolution.com";
-	}
-
-	public AppliedCandidateInformation getCandidateByEmail(String email) {
-		AppliedCandidateInformation byEmail = appliedCandidaterepo.findByEmail(email);
-		System.out.println(email + "found" + byEmail);
-		return byEmail;
-	}
+//	public String getDeleteHRCandidateEmailBody(AppliedCandidateInformation body) {
+//		return "Hi " + body.getFullName() + ",\n\n"
+//				+ "We regret to inform you that you are not qualified in the HR round.\n\n"
+//				+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+//				+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+//				+ "www.kraftsoftwaresolution.com";
+//	}
 	
 	public AppliedCandidateInformation findByEmail(String email) {
 		AppliedCandidateInformation candidateEmail = appliedCandidaterepo.findByEmail(email);
 		System.out.println(candidateEmail + "found");
 		return candidateEmail;
-	}
-
-	public void deleteCandidateFromAppliedCandidateInformation(String email) {
-
-		appliedCandidaterepo.deleteByEmail(email);
-	}
-	
-
-	public void deleteCandidateFromScreeningCandidateInformation(String email) {
-		AppliedCandidateInformation candidate = appliedCandidaterepo.findByEmail(email);
-		if (candidate != null) {
-			appliedCandidaterepo.delete(candidate);
-		} else {
-			System.out.println("Candidate Not found");
-		}
 	}
 	
 	public Iterable<AppliedCandidateInformation> getAllAppliedCandidates() {
@@ -413,6 +392,70 @@ public class Services {
 		Iterable<AppliedCandidateInformation> findByStatus = appliedCandidaterepo.findByStatus(str);
 		return findByStatus;
 	}
+	
+	public String deleteCandidateInformation(String email,String status) {
+		appliedCandidaterepo.deleteByEmail(email);
+		String subject = null;
+		if("applied".equals(status)) {
+			subject="Regret Mail For Not Shortlisted";
+         }
+		if("Screening".equals(status)) {
+			subject="Regret Mail For Not Selecting In Screening";
+         }
+		if("TechnicalRoundOne".equals(status)) {
+			subject="Regret Mail For Not Selected In Techical Round One";
+         }
+		if("TechnicalRoundTwo".equals(status)) {
+			subject="Regret Mail For Not Selected In Technical Round Two";
+         }
+		if("HR".equals(status)) {
+			subject="Regret Mail For Not Selected In HR Round";
+		}
+		return subject;
+	}
+	
+	public String emailBodyForDelete(AppliedCandidateInformation body, String status){
+		String emailBody = null;
+		 String fullName = body.getFullName();
+		if("applied".equals(status)) {
+			emailBody= "Hi " + fullName + ",\n\n"
+					+ "We regret to inform you that your eligibility criteria didn't match the requirements.\n\n"
+					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		
+		if("Screening".equals(status)) {
+			emailBody = "Hi " + fullName + ",\n\n"
+					+ "We regret to inform you that you are not qualified in the screening round.\n\n"
+					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		if("TechnicalRoundOne".equals(status)) {
+			emailBody = "Hi " + fullName + ",\n\n"
+					+ "We regret to inform you that you are not qualified in the first round of technical interview.\n\n"
+					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		if("TechnicalRoundTwo".equals(status)) {
+			emailBody = "Hi " + fullName + ",\n\n"
+					+ "We regret to inform you that you are not qualified in the second round of technical interview.\n\n"
+					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		if("HR".equals(status)) {
+			emailBody = "Hi " +fullName + ",\n\n"
+					+ "We regret to inform you that you are not qualified in the HR round.\n\n"
+					+ "Thank you for your interest and Please visit again to find more opportunities that suits your profile\n\n"
+					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		return emailBody;
+		
+	}
 
 //	---------------------------------------CreateJob------------------------------------------
 
@@ -429,6 +472,12 @@ public class Services {
 		Iterable<CreateJob> findAll = jobRepo.findAll();
 		System.out.println(findAll);
 		return findAll;
+	}
+	
+	public boolean deleteJobDetails(String jobId) {
+		CreateJob findByJobId = jobRepo.findByJobId(jobId);
+		jobRepo.delete(findByJobId);
+		return true;
 	}
 
 }
