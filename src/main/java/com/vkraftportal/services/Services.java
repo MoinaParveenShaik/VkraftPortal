@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -169,6 +170,12 @@ public class Services {
 		return findAll;
 	}
 
+	public String subjectForEmployeeRegistration(String email) {
+		employeeRepo.findByEmail(email);
+		String subject;
+		return subject = "Your Account information For Timesheet portal";
+	}
+
 //	------------------------------------------Timesheet Services-----------------------------------
 
 	public void saveTimesheet(Timesheet timesheet) {
@@ -293,23 +300,24 @@ public class Services {
 		return findByStatus;
 	}
 
-	public String deleteCandidateInformation(String email, String status) {
+	public String deleteCandidateInformation(String email, String status, String jobId) {
 		appliedCandidaterepo.deleteByEmail(email);
+		appliedCandidaterepo.findByJobId(jobId);
 		String subject = null;
 		if ("applied".equals(status)) {
-			subject = "Thank you for your interest in VKRAFT Software Services";
+			subject = "Application Status - " + jobId;
 		}
 		if ("Screening".equals(status)) {
-			subject = "Thank you for your interest in VKRAFT Software Services";
+			subject = "Update on Your Application - " + jobId;
 		}
 		if ("TechnicalRoundOne".equals(status)) {
-			subject = "Thank you for your interest in VKRAFT Software Services";
+			subject = "Update on Your Application - " + jobId;
 		}
 		if ("TechnicalRoundTwo".equals(status)) {
-			subject = "Thank you for your interest in VKRAFT Software Services";
+			subject = "Update on Your Application - " + jobId;
 		}
 		if ("HR".equals(status)) {
-			subject = "Thank you for your interest in VKRAFT Software Services";
+			subject = "Update on Your Application - " + jobId;
 		}
 		return subject;
 	}
@@ -381,7 +389,7 @@ public class Services {
 		}
 		return emailBody;
 	}
-	
+
 	public String selectCandidateInformation(String status, String jobId) {
 		appliedCandidaterepo.findByJobId(jobId);
 		String subject = null;
@@ -389,23 +397,23 @@ public class Services {
 			subject = "Application for " + jobId + " is Received Successfully";
 		}
 		if ("Screening".equals(status)) {
-			subject = "Congratulations!  You've Been Selected in the Screening Process";
+			subject = "Congratulations!  You've passed the Screening Process";
 		}
 		if ("TechnicalRoundOne".equals(status)) {
-			subject = "Congratulations!  You've Been Selected in the First Technical Interview";
+			subject = "Congratulations!  You've Been Selected for the First Technical Interview";
 		}
 		if ("TechnicalRoundTwo".equals(status)) {
-			subject = "Congratulations!  You've Been Selected in the Second Technical Interview";
+			subject = "Congratulations!  You've Been Selected for the Second Technical Interview";
 		}
 		if ("HR".equals(status)) {
-			subject = "Congratulations!  You've Been Selected in the HR Interview";
+			subject = "Congratulations!  You've Been Selected for the HR Interview";
 		}
 		if ("Selected".equals(status)) {
-			subject = "Heartfelt Congratulations! You've Successfully Conquered Every Round of Interviews";
+			subject = "Congratulations! You've been Selected";
 		}
 		return subject;
 	}
-	
+
 	public String emailBodyForSelect(AppliedCandidateInformation body) {
 		String emailBody = null;
 		String fullName = body.getFullName();
@@ -414,7 +422,8 @@ public class Services {
 		if ("applied".equals(status)) {
 			emailBody = "Dear " + fullName + ",\n\n"
 					+ "Hope this finds you well. Bravo! You are eligible to be part of our recruitment process. We would like to"
-					+ " extend our gratitude for your interest in joining the Vkraft team and for taking the time to submit your application for the" + role +".\n\n"
+					+ " extend our gratitude for your interest in joining the Vkraft team and for taking the time to submit your application for the"
+					+ role + ".\n\n"
 					+ " We wanted to inform you that we have successfully received your application. Our team is currently in the process "
 					+ "of reviewing all applications thoroughly to identify the candidates who most qualified and experienced for the role "
 					+ "and who are a good fit for our company culture. This can take some time, as we strive to ensure a fair and "
@@ -431,7 +440,7 @@ public class Services {
 		if ("Screening".equals(status)) {
 			emailBody = "Dear " + fullName + ",\n\n"
 					+ "I hope this email finds you well. We are pleased to inform you that you have successfully qualified in the screening "
-					+ "round for the " + role+".\n\n"
+					+ "round for the " + role + ".\n\n"
 					+ "Your application and performance in the screening process have been impressive, and we are excited about the "
 					+ "prospect of getting to know you better in the upcoming stages of our selection process.\n\n"
 					+ "The next step in our process is the technical interview, where we will delve deeper into your technical skills and expertise."
@@ -484,8 +493,7 @@ public class Services {
 					+ "We appreciate your patience during this process and anticipate providing you with the final decision soon. If you have any "
 					+ "questions or need further information in the meantime, please feel free to reach out.\n\n"
 					+ "Once again, congratulations on your success in the HR interview. We are excited about the prospect of potentially welcoming you "
-					+ "to our team.\n\n"
-					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
+					+ "to our team.\n\n" + "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
 					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
 		if ("Selected".equals(status)) {
@@ -498,12 +506,54 @@ public class Services {
 					+ "your start date, compensation details, and any additional information you may need. If you have any immediate questions or concerns, "
 					+ "please feel free to reach out.\n\n"
 					+ "Once again, congratulations on this well-deserved achievement! We are excited to welcome you to VKRAFT Software Services and "
-					+ "look forward to a successful and fulfilling journey together. \n\n"
-					+ "Welcome aboard!\n\n"
+					+ "look forward to a successful and fulfilling journey together. \n\n" + "Welcome aboard!\n\n"
 					+ "Best regards,\n" + "HR Team,\n" + "Vkraft Software Services Pvt Ltd\n"
 					+ "www.vkraftsoftware.com\n" + "www.kraftsoftwaresolution.com";
 		}
 		return emailBody;
+	}
+
+	public List<AppliedCandidateInformation> getCountOfSelectedCandidates() {
+//		long count = appliedCandidaterepo.countByStatus("applied");
+		String status = "applied";
+	    List<AppliedCandidateInformation> countByStatus = appliedCandidaterepo.countByStatus(status);
+//	    return appliedCandidaterepo.countByStatus("applied");
+		return countByStatus;
+	}
+	
+	public Long getCountOfAppliedCandidate() {
+		String status = "applied";
+		Iterable<AppliedCandidateInformation> candidates = appliedCandidaterepo.findByStatus(status);
+		long count = StreamSupport.stream(candidates.spliterator(), false).count();
+		return count;
+	}
+ 
+	public Long getCountOfScreeningCandidate() {
+		String status = "Screening";
+		Iterable<AppliedCandidateInformation> candidates = appliedCandidaterepo.findByStatus(status);
+		long count = StreamSupport.stream(candidates.spliterator(), false).count();
+		return count;
+	}
+ 
+	public Long getCountOfTechnicalRoundOne() {
+		String status = "TechnicalRoundOne";
+		Iterable<AppliedCandidateInformation> candidates = appliedCandidaterepo.findByStatus(status);
+		long count = StreamSupport.stream(candidates.spliterator(), false).count();
+		return count;
+	}
+ 
+	public Long getCountOfTechnicalRoundTwo() {
+		String status = "TechnicalRoundTwo";
+		Iterable<AppliedCandidateInformation> candidates = appliedCandidaterepo.findByStatus(status);
+		long count = StreamSupport.stream(candidates.spliterator(), false).count();
+		return count;
+	}
+ 
+	public Long getCountOfHRRound() {
+		String status = "HR";
+		Iterable<AppliedCandidateInformation> candidates = appliedCandidaterepo.findByStatus(status);
+		long count = StreamSupport.stream(candidates.spliterator(), false).count();
+		return count;
 	}
 
 //	---------------------------------------CreateJob------------------------------------------
