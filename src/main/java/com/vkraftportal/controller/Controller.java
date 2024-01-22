@@ -56,7 +56,9 @@ public class Controller extends RouteBuilder {
 					String generatedPassword = randomPassword;
 					String emailBody = services.getEmailBody(recipientEmail, generatedPassword,
 							employee.getEmployeeName());
+					String subject = services.subjectForEmployeeRegistration(employee.getEmail());
 					exchange.getMessage().setBody(emailBody);
+					exchange.getMessage().setHeader("emailSubject",subject);
 					exchange.getMessage().setHeader("recipientEmail", recipientEmail);
 					exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
@@ -727,7 +729,7 @@ public class Controller extends RouteBuilder {
 		from("direct:deleteCandidateInformation").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
-			String subject = services.deleteCandidateInformation(candidateInfo.getEmail(), candidateInfo.getStatus());
+			String subject = services.deleteCandidateInformation(candidateInfo.getEmail(), candidateInfo.getStatus(), candidateInfo.getJobId());
 			String emailBody = services.emailBodyForDelete(candidateInfo);
 			exchange.getMessage().setHeader("emailSubject",subject);
 			exchange.getMessage().setBody(emailBody);
@@ -738,6 +740,53 @@ public class Controller extends RouteBuilder {
 			producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
 					exchange.getMessage().getHeaders());
 		});
+		
+		//------------------------Get Count Of Applied Candidates Before On-Boarding------------------------------
+		 
+				rest().get("/getAppliedCandidatesCount").to("direct:getAppliedCandidatesCount");
+				from("direct:getAppliedCandidatesCount").process(exchange ->{
+					Long appliedCandidateCount=services.getCountOfAppliedCandidate();
+					System.out.println(appliedCandidateCount);
+					exchange.getMessage().setBody(appliedCandidateCount);
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				});
+		 
+				//------------------------Get Count Of Screening Candidates Before On-Boarding------------------------------
+				rest().get("/getScreeningCandidatesCount").to("direct:getScreeningCandidatesCount");
+				from("direct:getScreeningCandidatesCount").process(exchange->{
+					Long screeningCandidateCount=services.getCountOfScreeningCandidate();
+					System.out.println(screeningCandidateCount);
+					exchange.getMessage().setBody(screeningCandidateCount);
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				});
+		 
+				//------------------------Get Count Of Technical Round One Before On-Boarding------------------------------
+				rest().get("/getTechnicalRoundOneCount").to("direct:getTechnicalRoundOneCount");
+				from("direct:getTechnicalRoundOneCount").process(exchange->{
+					Long technicalRoundOneCandidateCount=services.getCountOfTechnicalRoundOne();
+					System.out.println(technicalRoundOneCandidateCount);
+					exchange.getMessage().setBody(technicalRoundOneCandidateCount);
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				});
+		 
+				//------------------------Get Count Of Technical Round Two Before On-Boarding------------------------------
+				rest().get("/getTechnicalRoundTwoCount").to("direct:getTechnicalRoundTwoCount");
+				from("direct:getTechnicalRoundTwoCount").process(exchange->{
+					Long technicalRoundTwoCandidateCount=services.getCountOfTechnicalRoundTwo();
+					System.out.println(technicalRoundTwoCandidateCount);
+					exchange.getMessage().setBody(technicalRoundTwoCandidateCount);
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				});
+		 
+		 
+				//------------------------Get Count Of HR Round Before On-Boarding------------------------------
+				rest().get("/getHRRoundCount").to("direct:getHRRoundCount");
+				from("direct:getHRRoundCount").process(exchange->{
+					Long hrRoundCount=services.getCountOfHRRound();
+					System.out.println(hrRoundCount);
+					exchange.getMessage().setBody(hrRoundCount);
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				});
 
 	}
 }
