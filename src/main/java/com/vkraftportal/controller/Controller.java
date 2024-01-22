@@ -725,7 +725,7 @@ public class Controller extends RouteBuilder {
 
 //	--------------After clicking reject delete record and send mail------------------
 
-		rest().get("/deleteRecord").param().name("email").type(RestParamType.query).endParam().to("direct:deleteCandidateInformation");
+		rest().post("/deleteRecord").param().name("email").type(RestParamType.query).endParam().to("direct:deleteCandidateInformation");
 		from("direct:deleteCandidateInformation").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			AppliedCandidateInformation candidateInfo = services.findByEmail(email);
