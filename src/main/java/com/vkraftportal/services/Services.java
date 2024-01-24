@@ -139,13 +139,23 @@ public class Services {
 		return employeeRepo.save(employee);
 	}
 
+//	public boolean employeeExists(RegisterEmployee employee) {
+//		if (employeeRepo.findByEmployeeNumberAndEmail(employee.getEmployeeNumber(),employee.getEmail()) != null) {
+//			return true;
+//		} else {
+//			return false;
+//		}
+//	}
+	
 	public boolean employeeExists(RegisterEmployee employee) {
-		if (employeeRepo.findByEmployeeNumber(employee.getEmployeeNumber()) != null) {
-			return true;
-		} else {
-			return false;
-		}
+	    // Check if an employee with the same employee number and email already exists
+	    RegisterEmployee existingEmployee = employeeRepo.findByEmployeeNumberOrEmail(
+	            employee.getEmployeeNumber(), employee.getEmail());
+
+	    // If an existing employee is found, return true to indicate that it already exists
+	    return existingEmployee != null;
 	}
+
 
 	public boolean validateEmployee(String username, String password) {
 		RegisterEmployee employee = employeeRepo.findByEmail(username);

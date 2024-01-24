@@ -46,7 +46,8 @@ public class Controller extends RouteBuilder {
 				RegisterEmployee employee = exchange.getIn().getBody(RegisterEmployee.class);
 				boolean employeeExists = services.employeeExists(employee);
 				if (employeeExists) {
-					exchange.getMessage().setBody("User already exists for " + employee.getEmployeeNumber());
+					 exchange.getMessage().setBody("User already exists for " + employee.getEmployeeNumber() + " or " + employee.getEmail());
+//					exchange.getMessage().setBody("User already exists for " + employee.getEmployeeNumber());
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
 				} else {
 					String randomPassword = services.generateAndSetRandomPassword();

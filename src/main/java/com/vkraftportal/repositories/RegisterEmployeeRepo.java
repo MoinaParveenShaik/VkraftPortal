@@ -16,5 +16,5 @@ public interface RegisterEmployeeRepo extends ElasticsearchRepository<RegisterEm
 
 	RegisterEmployee findByEmailAndPassword(String email, String password);
 
-	Object findByEmployeeNumber(String employeeNumber);
+	RegisterEmployee findByEmployeeNumberOrEmail(String employeeNumber, String email);
 }
