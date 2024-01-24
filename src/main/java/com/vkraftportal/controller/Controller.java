@@ -787,6 +787,27 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().setBody(hrRoundCount);
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 				});
+				
+//				----------------------------------Get Job Details-----------------------------------
+				 
+				rest().get("/getJobDetails").param().name("role").type(RestParamType.query).endParam()
+						.to("direct:getJobDetails");
+				from("direct:getJobDetails").log("role : ${body}").process(new Processor() {
+					@Override
+					public void process(Exchange exchange) throws Exception {
+						String role = exchange.getIn().getHeader("role", String.class);
+						System.out.println(role);
+						CreateJob jobByRole = services.getJobByRole(role);
+						System.out.println(jobByRole);
+						if (jobByRole != null) {
+							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+							exchange.getMessage().setBody(jobByRole);
+						} else {
+							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+							exchange.getMessage().setBody("Job with ID " + role + " not found ");
+						}
+					}
+				});
 
 	}
 }
