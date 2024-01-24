@@ -8,6 +8,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -579,5 +581,10 @@ public class Services {
 		CreateJob findByJobId = jobRepo.findByJobId(jobId);
 		jobRepo.delete(findByJobId);
 		return true;
+	}
+	
+	public CreateJob getJobByRole(String role) {
+		CreateJob findByRole = jobRepo.findByRole(role);
+		return findByRole;
 	}
 }
