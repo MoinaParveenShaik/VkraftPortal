@@ -974,7 +974,6 @@ public class Controller extends RouteBuilder {
 		rest().get("/getSoaCount").to("direct:getSoaCount");
 		from("direct:getSoaCount").process(exchange -> {
 			Long soaCount = services.getCountOfSoa();
-			System.out.println(soaCount);
 			exchange.getMessage().setBody(soaCount);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
