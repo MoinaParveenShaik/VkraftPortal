@@ -1,6 +1,5 @@
 package com.vkraftportal.controller;
 
-import java.time.Year;
 import java.util.List;
 
 import org.apache.camel.Exchange;
@@ -9,7 +8,6 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.model.rest.RestParamType;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +15,7 @@ import com.vkraftportal.model.AppliedCandidateInformation;
 import com.vkraftportal.model.CreateJob;
 import com.vkraftportal.model.EmployeeTimesheet;
 import com.vkraftportal.model.HumanResource;
+import com.vkraftportal.model.ReferredCandidateInformation;
 import com.vkraftportal.model.RegisterCandidate;
 import com.vkraftportal.model.RegisterEmployee;
 import com.vkraftportal.model.Timesheet;
@@ -56,35 +55,6 @@ public class Controller extends RouteBuilder {
 					services.saveEmployee(employee);
 					services.saveEmployeeTimesheet(employee.getEmployeeName(), employee.getEmployeeNumber(),
 							employee.getEmail());
-					/*
-					 * employeeTimesheet.setEmployeeName(employee.getEmployeeName());
-					 * employeeTimesheet.setEmployeeNumber(employee.getEmployeeNumber());
-					 * employeeTimesheet.setEmail(employee.getEmail());
-					 * employeeTimesheet.setJanuary("pending");
-					 * employeeTimesheet.setFebruary("pending");
-					 * employeeTimesheet.setMarch("pending"); employeeTimesheet.setApril("pending");
-					 * employeeTimesheet.setMay("pending"); employeeTimesheet.setJune("pending");
-					 * employeeTimesheet.setJuly("pending"); employeeTimesheet.setAugust("pending");
-					 * employeeTimesheet.setSeptember("pending");
-					 * employeeTimesheet.setOctober("pending");
-					 * employeeTimesheet.setNovember("pending");
-					 * employeeTimesheet.setDecember("pending");
-					 * 
-					 * int yr = Year.now().getValue();
-					 * 
-					 * int x = 0;
-					 * 
-					 * System.out.println(yr);
-					 * 
-					 * LocalDate now = LocalDate.now(); // Convert the current date to a string
-					 * 
-					 * String currentDateAsString = now.toString(); if
-					 * (currentDateAsString.equals("2024-02-01")) x = yr + 1;
-					 * employeeTimesheet.setYear(x); System.out.println(yr);
-					 * System.out.println("Current Date (String): " + currentDateAsString);
-					 * 
-					 * services.saveEmployeeTimesheet(employeeTimesheet);
-					 */
 					String recipientEmail = employee.getEmail();
 					String generatedPassword = randomPassword;
 					String emailBody = services.getEmailBody(recipientEmail, generatedPassword,
@@ -146,7 +116,6 @@ public class Controller extends RouteBuilder {
 			String year = exchange.getIn().getHeader("year", String.class);
 			String clientName = exchange.getIn().getHeader("clientName", String.class);
 			String assignmentName = exchange.getIn().getHeader("assignmentName", String.class);
-			String holidaysInput = exchange.getIn().getHeader("holidaysInput", String.class);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
 			Timesheet existingEntity = services.findByEmployeeNumberAndMonthAndYear(employeeNumber, month, year);
 			if (existingEntity != null) {
@@ -156,7 +125,6 @@ public class Controller extends RouteBuilder {
 				if (assignmentName != null) {
 					existingEntity.setAssignmentName(assignmentName);
 				}
-
 				services.saveTimesheet(existingEntity);
 				exchange.getMessage().setBody(existingEntity);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
@@ -271,48 +239,14 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//// ------------------------------------------------------10. Register Human Resource HR Portal Timesheet-------------------------------------------------------------------
-//
-//		rest().post("/registerHumanResource").type(HumanResource.class).to("direct:processAdmin");
-//		from("direct:processAdmin").log("User : ${body}").process(new Processor() {
-//			@Override
-//			public void process(Exchange exchange) throws Exception {
-//				HumanResource humanResource = exchange.getIn().getBody(HumanResource.class);
-//				if (services.humanResourceExists(humanResource)) {
-//					exchange.getMessage().setBody("User already exists for " + humanResource.getEmployeeName()
-//							+ " with " + humanResource.getEmployeeNumber() + " this employeeNumber");
-//					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
-//				} else {
-//					services.saveHRCredentials(humanResource);
-//					exchange.getMessage().setBody(humanResource.getEmployeeName() + " your registration successful.");
-//					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 201);
-//				}
-//			}
-//		}).end();
-
-// ------------------------------------------------------11. Get Pending Employees HR Portal Timesheet-----------------------------------------------------------
-
-		/*
-		 * rest().get("/pendingEmployees").param().name("month").type(RestParamType.
-		 * query).endParam() .to("direct:getPendingEmployees");
-		 * from("direct:getPendingEmployees").process(exchange -> { String month =
-		 * exchange.getIn().getHeader("month", String.class); List<EmployeeTimesheet>
-		 * pendingEmployees = services.getPendingEmployeesTimesheetByMonth(month);
-		 * System.out.println(pendingEmployees + "jjjj");
-		 * 
-		 * if (pendingEmployees != null && !pendingEmployees.isEmpty()) {
-		 * exchange.getMessage().setBody(pendingEmployees);
-		 * exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200); } else {
-		 * exchange.getMessage().setBody("No employees found with status 'pending'");
-		 * exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404); } });
-		 */
+// ------------------------------------------------------10. Get Pending Employees HR Portal Timesheet-----------------------------------------------------------
 
 		rest().get("/pendingEmployees").param().name("month").type(RestParamType.query).endParam().param().name("year")
 				.type(RestParamType.query).endParam().to("direct:getPendingEmployees");
 		from("direct:getPendingEmployees").process(exchange -> {
 			String month = exchange.getIn().getHeader("month", String.class);
 			int year = exchange.getIn().getHeader("year", Integer.class);
-			List<EmployeeTimesheet> pendingEmployees = services.getPendingEmployeesTimesheetByMonth(month,year);
+			List<EmployeeTimesheet> pendingEmployees = services.getPendingEmployeesTimesheetByMonth(month, year);
 			System.out.println(pendingEmployees + "jjjj");
 
 			if (pendingEmployees != null && !pendingEmployees.isEmpty()) {
@@ -323,26 +257,8 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
 		});
-//// ------------------------------------------------------12. Verify Human Resource HR Portal Timesheet-------------------------------------------------------------
-//
-//		rest().post("/verifyHumanResource").param().name("username").type(RestParamType.query).endParam().param()
-//				.name("password").type(RestParamType.query).endParam().to("direct:HumanResource");
-//		from("direct:HumanResource").process(exchange -> {
-//			String username = exchange.getIn().getHeader("username", String.class);
-//			String password = exchange.getIn().getHeader("password", String.class);
-//			log.info("Received request with username: {} and password: {}", username, password);
-//			HumanResource humanResource = services.getHRByUsernameAndPassword(username, password);
-//			boolean isUserValid = services.validateHR(username, password);
-//			if (isUserValid) {
-//				exchange.getMessage().setBody(humanResource);
-//				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-//			} else {
-//				exchange.getMessage().setBody("User not found");
-//				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-//			}
-//		});
 
-// ----------------------------------------------------------13. Get Employee Count Timesheet HR Portal-------------------------------------------------------------
+// ----------------------------------------------------------11. Get Employee Count Timesheet HR Portal-------------------------------------------------------------
 
 		rest().get("/getEmployeeCount").to("direct:getEmployee");
 		from("direct:getEmployee").process(exchange -> {
@@ -351,7 +267,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ---------------------------------------------------------14. RegisterCandidate After-Onboarding--------------------------------------------------------
+// ---------------------------------------------------------12. RegisterCandidate After-Onboarding--------------------------------------------------------
 
 		rest().post("/registerCandidate").type(RegisterCandidate.class).to("direct:processRegisterCandidate");
 		from("direct:processRegisterCandidate").log("RegisterCandidate : ${body}").process(new Processor() {
@@ -388,7 +304,7 @@ public class Controller extends RouteBuilder {
 				}).recipientList(simple(
 						"smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}"));
 
-// --------------------------------------------------------15. Candidate Login After On-Boarding------------------------------------------------------------
+// --------------------------------------------------------13. Candidate Login After On-Boarding------------------------------------------------------------
 
 		rest().get("/verifyCandidate").param().name("email").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:Candidate");
@@ -407,7 +323,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//--------------------------------------------------16. Save Applied Candidate Information Before-OnBoarding-------------------------------------------------
+//--------------------------------------------------14. Save Applied Candidate Information Before-OnBoarding-------------------------------------------------
 
 		rest().post("/saveAppliedCandidateInformation").type(AppliedCandidateInformation.class)
 				.to("direct:candidateInfo");
@@ -421,7 +337,6 @@ public class Controller extends RouteBuilder {
 							.setBody(appliedCandidateInfo.getFullName() + " already applied for this position");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
 				} else {
-//					String resumePath = appliedCandidateInfo.getResume();
 					appliedCandidateInfo.setStatus("applied");
 					services.saveAppliedCandidateInfo(appliedCandidateInfo);
 					exchange.getMessage()
@@ -442,7 +357,7 @@ public class Controller extends RouteBuilder {
 			}
 		}).end();
 
-//		-----------------------------------------17. Login Before On-Boarding---------------------------------------------------------------------------
+//		-----------------------------------------15. Login Before On-Boarding---------------------------------------------------------------------------
 
 		rest().get("/verifyLogin").param().name("email").type(RestParamType.query).endParam().param().name("password")
 				.type(RestParamType.query).endParam().to("direct:processLogin");
@@ -461,7 +376,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		---------------------------------------------------18. Forgot Password--------------------------------------------------------------------------
+//		---------------------------------------------------16. Forgot Password--------------------------------------------------------------------------
 
 		rest().put("/forgetPassword").param().name("email").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:processPassword");
@@ -487,7 +402,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		------------------------------------------------------19. Register Job Before On-Boarding---------------------------------------------------------------------------
+//		------------------------------------------------------17. Register Job Before On-Boarding---------------------------------------------------------------------------
 
 		rest().post("/registerJob").type(CreateJob.class).to("direct:saveJob");
 		from("direct:saveJob").log("Job : ${body}").process(new Processor() {
@@ -506,7 +421,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		----------------------------------20. Get All Jobs-----------------------------------
+//		----------------------------------18. Get All Jobs-----------------------------------
 
 		rest().get("/getAllJobs").to("direct:processJobs");
 		from("direct:processJobs").log("Jobs List").process(new Processor() {
@@ -518,7 +433,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		-----------------------------------21. Delete Job Details--------------------------------------------
+//		-----------------------------------19. Delete Job Details--------------------------------------------
 
 		rest().get("/deleteJobDetails").param().name("jobId").type(RestParamType.query).endParam()
 				.to("direct:deleteJobDetails");
@@ -540,7 +455,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		-----------------------------------------------22. Register Candidate Before On-Boarding----------------------------------------------
+//		-----------------------------------------------20. Register Candidate Before On-Boarding----------------------------------------------
 
 		rest().post("/saveRegisterCandidate").type(RegisterCandidate.class).to("direct:processRegister");
 		from("direct:processRegister").log("RegisterCandidate : ${body}").process(new Processor() {
@@ -568,7 +483,7 @@ public class Controller extends RouteBuilder {
 			}
 		}).end();
 
-//		--------------------------------------------23. Applied Candidates List Before On-Boarding--------------------------------------------------------
+//		--------------------------------------------21. Applied Candidates List Before On-Boarding--------------------------------------------------------
 
 		rest().get("/listOfAppliedCandidates").to("direct:appliedCandidates");
 		from("direct:appliedCandidates").log("Get all applied candidates request received").process(new Processor() {
@@ -580,7 +495,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		------------------------24. After clicking on screening should be moved to Screening Before On-Boarding--------------------------
+//		------------------------22. After clicking on screening should be moved to Screening Before On-Boarding--------------------------
 
 		rest().post("/selectedForScreening").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:selectedForScreeningRound");
@@ -595,7 +510,6 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setBody(candidateInfo);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			}
-
 			String subject = services.selectCandidateInformation(candidateInfo.getStatus(), candidateInfo.getJobId(),
 					candidateInfo.getRole());
 			String emailBody = services.emailBodyForSelect(candidateInfo);
@@ -610,7 +524,7 @@ public class Controller extends RouteBuilder {
 
 		});
 
-//		--------------------------------------------25. Screening Candidates List Before On-Boarding-------------------------------------
+//		--------------------------------------------23. Screening Candidates List Before On-Boarding-------------------------------------
 
 		rest().get("/listOfScreeningCandidates").to("direct:screeningCandidates");
 		from("direct:screeningCandidates").log("Get all screening candidates request received")
@@ -624,7 +538,7 @@ public class Controller extends RouteBuilder {
 					}
 				});
 
-//		--------------26. After clicking on Selected should be moved to technicalOne Before On-Boarding--------------------
+//		--------------24. After clicking on Selected should be moved to technicalOne Before On-Boarding--------------------
 
 		rest().post("/selectedForTechnicalOne").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:selectedForTechnicalRoundOne");
@@ -652,7 +566,7 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().getHeaders());
 		});
 
-//		-----------------------27. Technical Round One Candidate List--------------------
+//		-----------------------25. Technical Round One Candidate List--------------------
 
 		rest().get("/listOfTechnicalRoundOneCandidates").to("direct:technicalRoundOneCandidates");
 		from("direct:technicalRoundOneCandidates").log("Get all technical round one candidates request received")
@@ -666,7 +580,7 @@ public class Controller extends RouteBuilder {
 					}
 				});
 
-//		--------------28. After clicking on Selected should be moved to technicalTwo Before On-Boarding--------------------
+//		--------------26. After clicking on Selected should be moved to technicalTwo Before On-Boarding--------------------
 
 		rest().post("/selectedForTechnicalTwo").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:selectedForTechnicalRoundTwo");
@@ -694,7 +608,7 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().getHeaders());
 		});
 
-//		-----------------------29. Technical Round Two Candidate List--------------------
+//		-----------------------27. Technical Round Two Candidate List--------------------
 
 		rest().get("/listOfTechnicalRoundTwoCandidates").to("direct:technicalRoundTwoCandidates");
 		from("direct:technicalRoundTwoCandidates").log("Get all technical round two candidates request received")
@@ -708,7 +622,7 @@ public class Controller extends RouteBuilder {
 					}
 				});
 
-//		--------------30. After clicking on Selected should be moved to HR Before On-Boarding--------------------
+//		--------------28. After clicking on Selected should be moved to HR Before On-Boarding--------------------
 
 		rest().post("/selectedForHR").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:selectedForHRRound");
@@ -736,7 +650,7 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().getHeaders());
 		});
 
-//		-----------------------31. HR Candidate List--------------------
+//		-----------------------29. HR Candidate List--------------------
 
 		rest().get("/listOfHRRoundCandidates").to("direct:hRRoundCandidates");
 		from("direct:hRRoundCandidates").log("Get all HR round candidates request received").process(new Processor() {
@@ -748,7 +662,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		--------------32. After clicking on Selected should be moved to Selected Before On-Boarding--------------------
+//		--------------30. After clicking on Selected should be moved to Selected Before On-Boarding--------------------
 		rest().post("/candidatesSelectedInAllRounds").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:selectedInAllRounds");
 		from("direct:selectedInAllRounds").process(exchange -> {
@@ -775,7 +689,7 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().getHeaders());
 		});
 
-//		-----------------------33. Selected Candidate List--------------------
+//		-----------------------31. Selected Candidate List--------------------
 
 		rest().get("/listOfSelectedCandidates").to("direct:selectedCandidates");
 		from("direct:selectedCandidates").log("Get all selected candidates request received").process(new Processor() {
@@ -787,7 +701,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//	--------------34. After clicking reject delete record and send mail------------------
+//	--------------32. After clicking reject delete record and send mail------------------
 
 		rest().post("/deleteRecord").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:deleteCandidateInformation");
@@ -807,7 +721,7 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().getHeaders());
 		});
 
-// ------------------------35. Get Count Of Applied Candidates Before On-Boarding------------------------------
+// ------------------------33. Get Count Of Applied Candidates Before On-Boarding------------------------------
 
 		rest().get("/getAppliedCandidatesCount").to("direct:getAppliedCandidatesCount");
 		from("direct:getAppliedCandidatesCount").process(exchange -> {
@@ -816,7 +730,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------36. Get Count Of Screening Candidates Before On-Boarding------------------------------
+// ------------------------34. Get Count Of Screening Candidates Before On-Boarding------------------------------
 		rest().get("/getScreeningCandidatesCount").to("direct:getScreeningCandidatesCount");
 		from("direct:getScreeningCandidatesCount").process(exchange -> {
 			Long screeningCandidateCount = services.getCountOfScreeningCandidate();
@@ -824,7 +738,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------37. Get Count Of Technical Round One Before On-Boarding------------------------------
+// ------------------------35. Get Count Of Technical Round One Before On-Boarding------------------------------
 		rest().get("/getTechnicalRoundOneCount").to("direct:getTechnicalRoundOneCount");
 		from("direct:getTechnicalRoundOneCount").process(exchange -> {
 			Long technicalRoundOneCandidateCount = services.getCountOfTechnicalRoundOne();
@@ -832,7 +746,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------38. Get Count Of Technical Round Two Before On-Boarding------------------------------
+// ------------------------36. Get Count Of Technical Round Two Before On-Boarding------------------------------
 		rest().get("/getTechnicalRoundTwoCount").to("direct:getTechnicalRoundTwoCount");
 		from("direct:getTechnicalRoundTwoCount").process(exchange -> {
 			Long technicalRoundTwoCandidateCount = services.getCountOfTechnicalRoundTwo();
@@ -840,7 +754,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------39. Get Count Of HR Round Before On-Boarding------------------------------
+// ------------------------37. Get Count Of HR Round Before On-Boarding------------------------------
 		rest().get("/getHRRoundCount").to("direct:getHRRoundCount");
 		from("direct:getHRRoundCount").process(exchange -> {
 			Long hrRoundCount = services.getCountOfHRRound();
@@ -848,7 +762,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------40. Get Count Of Selected Before On-Boarding------------------------------
+// ------------------------38. Get Count Of Selected Before On-Boarding------------------------------
 		rest().get("/getSelectedCount").to("direct:getSelectedCount");
 		from("direct:getSelectedCount").process(exchange -> {
 			Long selectedCount = services.getCountOfSelected();
@@ -856,7 +770,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//				----------------------------------41. Get Job Details-----------------------------------
+//				----------------------------------39. Get Job Details-----------------------------------
 
 		rest().get("/getJobDetails").param().name("jobId").type(RestParamType.query).endParam()
 				.to("direct:getJobDetails");
@@ -875,8 +789,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-		// -----------------------------42. verify team lead
-		// login---------------------------------
+// 			-----------------------------40. verify team lead login---------------------------------
 
 		rest().get("/verifyTeamLead").param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:TeamLead");
@@ -886,10 +799,7 @@ public class Controller extends RouteBuilder {
 			String password = exchange.getIn().getHeader("password", String.class);
 			log.info("Received request with username: {} and password: {}", username, password);
 			HumanResource humanResource = services.getTLByUsernameAndPassword(username, password);
-
-			// Use equals method for string comparison
 			if (humanResource != null) {
-
 				exchange.getMessage().setBody(humanResource);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			} else {
@@ -898,7 +808,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-		// ----------------------- 43.register HR or TL-------------------
+//		 ----------------------- 41.register HR or TL-------------------
 		rest().post("/registerHRrTL").type(HumanResource.class).to("direct:processAdmin");
 		from("direct:processAdmin").log("User : ${body}").process(new Processor() {
 			@Override
@@ -916,9 +826,7 @@ public class Controller extends RouteBuilder {
 			}
 		}).end();
 
-		// ------------------------------------------------------11. Verify Human
-		// Resource HR Portal
-		// Timesheet-------------------------------------------------------------
+//		 -------------------42. Verify Human Resource HR Portal-----------------------------------
 
 		rest().get("/verifyHumanResource").param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:HR");
@@ -940,7 +848,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//		--------------------------------42. Get Employee By ProjectName---------------------------
+//		--------------------------------43. Get Employee By ProjectName---------------------------
 
 		rest().get("/listOfEmployeesForParticularProject").param().name("projectName").type(RestParamType.query)
 				.endParam().to("direct:getListOfEmployeesInProject");
@@ -952,7 +860,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//		------------------------41. Get Count Of Amway------------------------------
+//		------------------------44. Get Count Of Amway------------------------------
 
 		rest().get("/getAmwayCount").to("direct:getAmwayCount");
 		from("direct:getAmwayCount").process(exchange -> {
@@ -960,7 +868,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setBody(amwayCount);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
-//------------------------49. Get Count Of Aia------------------------------
+//		------------------------45. Get Count Of Aia------------------------------
 
 		rest().get("/getAiaCount").to("direct:getAiaCount");
 		from("direct:getAiaCount").process(exchange -> {
@@ -969,7 +877,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//------------------------50. Get Count Of SOA------------------------------
+//		------------------------46. Get Count Of SOA------------------------------
 
 		rest().get("/getSoaCount").to("direct:getSoaCount");
 		from("direct:getSoaCount").process(exchange -> {
@@ -978,7 +886,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//------------------------51. Get Count Of Airflow------------------------------
+//		------------------------47. Get Count Of Airflow------------------------------
 
 		rest().get("/getAirflowCount").to("direct:getAirflowCount");
 		from("direct:getAirflowCount").process(exchange -> {
@@ -987,7 +895,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//------------------------52. Get Count Of Communication------------------------------
+//		------------------------48. Get Count Of Communication------------------------------
 
 		rest().get("/getCommunicationCount").to("direct:getCommunicationCount");
 		from("direct:getCommunicationCount").process(exchange -> {
@@ -996,7 +904,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//------------------------53. Get Count Of Azure------------------------------
+//		------------------------49. Get Count Of Azure------------------------------
 
 		rest().get("/getAzureCount").to("direct:getAzureCount");
 		from("direct:getAzureCount").process(exchange -> {
@@ -1005,7 +913,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//------------------------54. Get Count Of MQ------------------------------
+//		------------------------50. Get Count Of MQ------------------------------
 
 		rest().get("/getMqCount").to("direct:getMqCount");
 		from("direct:getMqCount").process(exchange -> {
@@ -1014,7 +922,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//------------------------54. Get Count Of Horizon------------------------------
+//		------------------------51. Get Count Of Horizon------------------------------
 
 		rest().get("/getHorizonCount").to("direct:getHorizonCount");
 		from("direct:getHorizonCount").process(exchange -> {
@@ -1022,24 +930,66 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setBody(horizonCount);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
-		
-		//------------------------54. Get Count Of IEPod1------------------------------
 
-				rest().get("/getIePod1Count").to("direct:getIePod1Count");
-				from("direct:getIePod1Count").process(exchange -> {
-					Long iePod1Count = services.getCountOfIePod1();
-					exchange.getMessage().setBody(iePod1Count);
+// 		------------------------52. Get Count Of IEPod1------------------------------
+
+		rest().get("/getIePod1Count").to("direct:getIePod1Count");
+		from("direct:getIePod1Count").process(exchange -> {
+			Long iePod1Count = services.getCountOfIePod1();
+			exchange.getMessage().setBody(iePod1Count);
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		});
+
+//		 ------------------------53. Get Count Of IEPod3------------------------------
+
+		rest().get("/getIePod3Count").to("direct:getIePod3Count");
+		from("direct:getIePod3Count").process(exchange -> {
+			Long iePod3Count = services.getCountOfIePod3();
+			exchange.getMessage().setBody(iePod3Count);
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		});
+
+//				--------------------54. Refer a friend-------------------------------
+
+		rest().post("/saveReferredCandidateInformation").type(ReferredCandidateInformation.class)
+				.to("direct:referredCandidateInfo");
+		from("direct:referredCandidateInfo").log("ReferredCandidateInfo : ${body}").process(new Processor() {
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				ReferredCandidateInformation referredCandidate = exchange.getIn()
+						.getBody(ReferredCandidateInformation.class);
+				if (services.referredCandidateInfoExists(referredCandidate)) {
+					exchange.getMessage().setBody(referredCandidate.getFullName()
+							+ " Already referred for the position " + referredCandidate.getPosition());
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
+				} else {
+					services.saveReferredCandidateInfo(referredCandidate);
+					exchange.getMessage()
+							.setBody(referredCandidate.getFullName() + "Received the information successfully");
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-				});
-				
-				//------------------------54. Get Count Of IEPod3------------------------------
+				}
+			}
+		});
 
-				rest().get("/getIePod3Count").to("direct:getIePod3Count");
-				from("direct:getIePod3Count").process(exchange -> {
-					Long iePod3Count = services.getCountOfIePod3();
-					exchange.getMessage().setBody(iePod3Count);
-					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-				});
+//				--------------------55. Get Referred Candidates List-----------------------------
 
+		rest().get("/listOfReferredCandidates").to("direct:referredCandidateList");
+		from("direct:referredCandidateList").log("ReferredCandidatesList : ${body}").process(new Processor() {
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				Iterable<ReferredCandidateInformation> referredCandidateInfo = services.getListOfReferredCandidates();
+				exchange.getMessage().setBody(referredCandidateInfo);
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+			}
+		});
+
+//				------------------------56. Get Count of Referred Candidates--------------------
+
+		rest().get("/referredCandidateCount").to("direct:refCount");
+		from("direct:refCount").process(exchange -> {
+			Long refCandidateCount = services.countOfReferredCandidate();
+			exchange.getMessage().setBody(refCandidateCount);
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		});
 	}
 }

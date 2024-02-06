@@ -1,25 +1,19 @@
 package com.vkraftportal.services;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.time.Year;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import com.vkraftportal.model.AppliedCandidateInformation;
 import com.vkraftportal.model.CreateJob;
 import com.vkraftportal.model.EmployeeTimesheet;
 import com.vkraftportal.model.HumanResource;
+import com.vkraftportal.model.ReferredCandidateInformation;
 import com.vkraftportal.model.RegisterCandidate;
 import com.vkraftportal.model.RegisterEmployee;
 import com.vkraftportal.model.Timesheet;
@@ -27,6 +21,7 @@ import com.vkraftportal.repositories.AppliedCandidateInformationRepo;
 import com.vkraftportal.repositories.CreateJobRepo;
 import com.vkraftportal.repositories.EmployeeTimesheetRepo;
 import com.vkraftportal.repositories.HumanResourceRepo;
+import com.vkraftportal.repositories.ReferredCandidateRepo;
 import com.vkraftportal.repositories.RegisterCandidateRepo;
 import com.vkraftportal.repositories.RegisterEmployeeRepo;
 import com.vkraftportal.repositories.TimesheetRepo;
@@ -48,22 +43,9 @@ public class Services {
 	CreateJobRepo jobRepo;
 	@Autowired
 	EmployeeTimesheetRepo employeeTimesheetRepo;
+	@Autowired
+	ReferredCandidateRepo referredCandidaterepo;
 //	---------------------------------------HumanResource Services---------------------------------
-
-//	public HumanResource saveHRCredentials(HumanResource humanResource) {
-//
-//		return humanResourceRepo.save(humanResource);
-//	}
-
-//	public boolean humanResourceExists(HumanResource humanResource) {
-//
-//		if (humanResourceRepo.findByEmployeeNameAndEmployeeNumber(humanResource.getEmployeeName(),
-//				humanResource.getEmployeeNumber()) != null) {
-//			return true;
-//		} else {
-//			return false;
-//		}
-//	}
 
 	public HumanResource getHRByUsernameAndPassword(String email, String password) {
 
@@ -91,10 +73,6 @@ public class Services {
 		HumanResource admin = humanResourceRepo.findByEmail(username);
 		return admin != null && admin.getPassword().equals(password);
 	}
-
-//	public HumanResource getHRByUsernameAndPassword(String email, String password) {
-//		return humanResourceRepo.findByEmailAndPassword(email, password);
-//	}
 
 	public HumanResource saveHRCredentials(HumanResource humanResource) {
 
@@ -273,11 +251,9 @@ public class Services {
 
 	public List<Timesheet> getEmployeesByStatus(String string) {
 		if (string.equals("pending")) {
-			System.out.println("in pending ");
 			List<Timesheet> findByStatus = timesheetRepo.findByStatus(string);
 			return findByStatus;
 		} else if (string.equals("approved")) {
-			System.out.println("in approved ");
 			List<Timesheet> findByStatus = timesheetRepo.findByStatus(string);
 			return findByStatus;
 		} else
@@ -286,7 +262,6 @@ public class Services {
 
 	public Iterable<Timesheet> getTotalEmployees() {
 		Iterable<Timesheet> findAll = timesheetRepo.findAll();
-		System.out.println(findAll + "Sss");
 		return findAll;
 	}
 
@@ -369,6 +344,213 @@ public class Services {
 		long count = StreamSupport.stream(timesheets.spliterator(), false).count();
 		return count;
 	}
+	
+	public void saveEmployeeTimesheet(EmployeeTimesheet employeeTimesheet) {
+		employeeTimesheetRepo.save(employeeTimesheet);
+	}
+
+	public void getEmployeeTimeseetData(String employeeNumber, String month, String year) {
+		EmployeeTimesheet byEmployeeNumber = employeeTimesheetRepo.findByEmployeeNumberAndYear(employeeNumber, year);
+		int yrInt = Integer.parseInt(year);
+		if (byEmployeeNumber != null) {
+			if (month.equals("January")) {
+				byEmployeeNumber.setJanuary("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("February")) {
+				byEmployeeNumber.setFebruary("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("March")) {
+				byEmployeeNumber.setMarch("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("April")) {
+				byEmployeeNumber.setApril("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("May")) {
+				byEmployeeNumber.setMay("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("June")) {
+				byEmployeeNumber.setJune("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("July")) {
+				byEmployeeNumber.setJuly("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("August")) {
+				byEmployeeNumber.setAugust("submitted");
+			}
+			if (month.equals("September")) {
+				byEmployeeNumber.setSeptember("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("October")) {
+				byEmployeeNumber.setOctober("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("November")) {
+				byEmployeeNumber.setMay("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+			if (month.equals("December")) {
+				byEmployeeNumber.setDecember("submitted");
+				byEmployeeNumber.setYear(yrInt);
+			}
+
+			employeeTimesheetRepo.save(byEmployeeNumber);
+		} else {
+			EmployeeTimesheet empData = employeeTimesheetRepo.findByEmployeeNumber(employeeNumber);
+			EmployeeTimesheet newDataToSave = new EmployeeTimesheet();
+			newDataToSave.setEmployeeName(empData.getEmployeeName());
+			newDataToSave.setEmployeeNumber(empData.getEmployeeNumber());
+			newDataToSave.setEmail(empData.getEmail());
+			String status = "pending";
+			newDataToSave.setJanuary(status);
+			newDataToSave.setFebruary(status);
+			newDataToSave.setMarch(status);
+			newDataToSave.setApril(status);
+			newDataToSave.setMay(status);
+			newDataToSave.setJune(status);
+			newDataToSave.setJuly(status);
+			newDataToSave.setAugust(status);
+			newDataToSave.setSeptember(status);
+			newDataToSave.setOctober(status);
+			newDataToSave.setNovember(status);
+			newDataToSave.setDecember(status);
+			if (month.equals("January")) {
+				newDataToSave.setJanuary("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("February")) {
+				newDataToSave.setFebruary("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("March")) {
+				newDataToSave.setMarch("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("April")) {
+				newDataToSave.setApril("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("May")) {
+				newDataToSave.setMay("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("June")) {
+				newDataToSave.setJune("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("July")) {
+				newDataToSave.setJuly("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("August")) {
+				newDataToSave.setAugust("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("September")) {
+				newDataToSave.setSeptember("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("October")) {
+				newDataToSave.setOctober("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("November")) {
+				newDataToSave.setMay("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			if (month.equals("December")) {
+				newDataToSave.setDecember("submitted");
+				newDataToSave.setYear(yrInt);
+			}
+			employeeTimesheetRepo.save(newDataToSave);
+		}
+	}
+
+	public List<EmployeeTimesheet> getPendingEmployeesTimesheetByMonth(String month, int year) {
+		String status = "pending";
+		if (month.equals("January")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJanuaryAndYear(status, year);
+			return data;
+		}
+		if (month.equals("February")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByFebruaryAndYear(status, year);
+			return data;
+		}
+		if (month.equals("March")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByMarchAndYear(status, year);
+			return data;
+		}
+		if (month.equals("April")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByAprilAndYear(status, year);
+			return data;
+		}
+		if (month.equals("May")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByMayAndYear(status, year);
+			return data;
+		}
+		if (month.equals("June")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJuneAndYear(status, year);
+			System.out.println("mydata:" + data);
+			return data;
+		}
+		if (month.equals("July")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJulyAndYear(status, year);
+			return data;
+		}
+		if (month.equals("August")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByAugustAndYear(status, year);
+			return data;
+		}
+		if (month.equals("September")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findBySeptemberAndYear(status, year);
+			return data;
+		}
+		if (month.equals("October")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByOctoberAndYear(status, year);
+			return data;
+		}
+		if (month.equals("November")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByNovemberAndYear(status, year);
+			return data;
+		}
+		if (month.equals("December")) {
+			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByDecemberAndYear(status, year);
+			return data;
+		}
+		return null;
+	}
+
+	public void saveEmployeeTimesheet(String employeeName, String employeeNumber, String email) {
+
+		String status = "pending";
+		EmployeeTimesheet employeeTimesheet = new EmployeeTimesheet();
+
+		employeeTimesheet.setEmployeeName(employeeName);
+		employeeTimesheet.setEmployeeNumber(employeeNumber);
+		employeeTimesheet.setEmail(email);
+		employeeTimesheet.setJanuary(status);
+		employeeTimesheet.setFebruary(status);
+		employeeTimesheet.setMarch(status);
+		employeeTimesheet.setApril(status);
+		employeeTimesheet.setMay(status);
+		employeeTimesheet.setJune(status);
+		employeeTimesheet.setJuly(status);
+		employeeTimesheet.setAugust(status);
+		employeeTimesheet.setSeptember(status);
+		employeeTimesheet.setOctober(status);
+		employeeTimesheet.setNovember(status);
+		employeeTimesheet.setDecember(status);
+		int yr = Year.now().getValue();
+		employeeTimesheet.setYear(yr);
+		employeeTimesheetRepo.save(employeeTimesheet);
+	}
 
 //	----------------------------------AppliedCandidateInformationServices----------------------------------
 
@@ -387,7 +569,6 @@ public class Services {
 
 	public AppliedCandidateInformation findByEmail(String email) {
 		AppliedCandidateInformation candidateEmail = appliedCandidaterepo.findByEmail(email);
-		System.out.println(candidateEmail + "found");
 		return candidateEmail;
 	}
 
@@ -701,7 +882,6 @@ public class Services {
 
 	public Iterable<CreateJob> getAllJobs() {
 		Iterable<CreateJob> findAll = jobRepo.findAll();
-		System.out.println(findAll);
 		return findAll;
 	}
 
@@ -711,290 +891,29 @@ public class Services {
 		return true;
 	}
 
-	public void saveEmployeeTimesheet(EmployeeTimesheet employeeTimesheet) {
-		employeeTimesheetRepo.save(employeeTimesheet);
-	}
-
-	public void getEmployeeTimeseetData(String employeeNumber, String month, String year) {
-		EmployeeTimesheet byEmployeeNumber = employeeTimesheetRepo.findByEmployeeNumberAndYear(employeeNumber, year);
-		int yrInt = Integer.parseInt(year);
-		System.out.println(yrInt);
-		System.out.println("inside getEmployeeTimeseetData" + byEmployeeNumber);
-		if (byEmployeeNumber != null) {
-			System.out.println("EmpTimesheetData" + byEmployeeNumber);
-			if (month.equals("January")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if January");
-				byEmployeeNumber.setJanuary("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("February")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if february");
-				byEmployeeNumber.setFebruary("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("March")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if March");
-				byEmployeeNumber.setMarch("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("April")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if April");
-				byEmployeeNumber.setApril("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("May")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if May");
-				byEmployeeNumber.setMay("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("June")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if June");
-				byEmployeeNumber.setJune("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("July")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if July");
-				byEmployeeNumber.setJuly("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("August")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if August");
-				byEmployeeNumber.setAugust("submitted");
-			}
-			if (month.equals("September")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if September");
-				byEmployeeNumber.setSeptember("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("October")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if October");
-				byEmployeeNumber.setOctober("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("November")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if November");
-				byEmployeeNumber.setMay("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-			if (month.equals("December")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if December");
-				byEmployeeNumber.setDecember("submitted");
-				byEmployeeNumber.setYear(yrInt);
-			}
-
-			employeeTimesheetRepo.save(byEmployeeNumber);
-			System.out.println(byEmployeeNumber);
-		} else {
-			EmployeeTimesheet empData = employeeTimesheetRepo.findByEmployeeNumber(employeeNumber);
-			System.out.println("else : " + empData);
-			EmployeeTimesheet newDataToSave = new EmployeeTimesheet();
-			newDataToSave.setEmployeeName(empData.getEmployeeName());
-			newDataToSave.setEmployeeNumber(empData.getEmployeeNumber());
-			newDataToSave.setEmail(empData.getEmail());
-			String status = "pending";
-			newDataToSave.setJanuary(status);
-			newDataToSave.setFebruary(status);
-			newDataToSave.setMarch(status);
-			newDataToSave.setApril(status);
-			newDataToSave.setMay(status);
-			newDataToSave.setJune(status);
-			newDataToSave.setJuly(status);
-			newDataToSave.setAugust(status);
-			newDataToSave.setSeptember(status);
-			newDataToSave.setOctober(status);
-			newDataToSave.setNovember(status);
-			newDataToSave.setDecember(status);
-			/*
-			 * EmployeeTimesheet empData =
-			 * employeeTimesheetRepo.findByEmployeeNumberAndYear(
-			 * findByEmployeeNumber.getEmployeeNumber(), findByEmployeeNumber.getYear());
-			 */
-			System.out.println("empData : " + empData);
-			/*
-			 * EmployeeTimesheet finalTimesheet = new EmployeeTimesheet();
-			 * saveEmployeeTimesheet(empData.getEmployeeName(), empData.getEmployeeNumber(),
-			 * empData.getEmail());
-			 */
-			if (month.equals("January")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if January");
-				newDataToSave.setJanuary("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("February")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if february");
-				newDataToSave.setFebruary("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("March")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if March");
-				newDataToSave.setMarch("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("April")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if April");
-				newDataToSave.setApril("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("May")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if May");
-				newDataToSave.setMay("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("June")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if June");
-				newDataToSave.setJune("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("July")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if July");
-				newDataToSave.setJuly("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("August")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if August");
-				newDataToSave.setAugust("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("September")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if September");
-				newDataToSave.setSeptember("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("October")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if October");
-				newDataToSave.setOctober("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("November")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if November");
-				newDataToSave.setMay("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-			if (month.equals("December")) {
-				System.out.println(byEmployeeNumber);
-				System.out.println("in if December");
-				newDataToSave.setDecember("submitted");
-				newDataToSave.setYear(yrInt);
-			}
-
-			employeeTimesheetRepo.save(newDataToSave);
-			System.out.println(newDataToSave);
+//	---------------------Referred Candidate Methods---------------------------------------
+	
+	public boolean referredCandidateInfoExists(ReferredCandidateInformation referredCandidate) {
+		if (referredCandidaterepo.findByFullNameAndEmailAndPosition(referredCandidate.getFullName(),referredCandidate.getEmail(),referredCandidate.getPosition()) != null) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
-	public List<EmployeeTimesheet> getPendingEmployeesTimesheetByMonth(String month, int year) {
-		String status = "pending";
-		if (month.equals("January")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJanuaryAndYear(status, year);
-			return data;
-		}
-		if (month.equals("February")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByFebruaryAndYear(status, year);
-			return data;
-		}
-		if (month.equals("March")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByMarchAndYear(status, year);
-			return data;
-		}
-		if (month.equals("April")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByAprilAndYear(status, year);
-			return data;
-		}
-		if (month.equals("May")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByMayAndYear(status, year);
-			return data;
-		}
-		if (month.equals("June")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJuneAndYear(status, year);
-			System.out.println("mydata:" + data);
-			return data;
-		}
-		if (month.equals("July")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJulyAndYear(status, year);
-			return data;
-		}
-		if (month.equals("August")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByAugustAndYear(status, year);
-			return data;
-		}
-		if (month.equals("September")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findBySeptemberAndYear(status, year);
-			return data;
-		}
-		if (month.equals("October")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByOctoberAndYear(status, year);
-			return data;
-		}
-		if (month.equals("November")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByNovemberAndYear(status, year);
-			return data;
-		}
-		if (month.equals("December")) {
-			System.out.println("in getPendingEmployeesTimesheetByMonth");
-			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByDecemberAndYear(status, year);
-			return data;
-		}
-		return null;
+	public ReferredCandidateInformation saveReferredCandidateInfo(ReferredCandidateInformation referredCandidate) {
+		return referredCandidaterepo.save(referredCandidate);
+		
 	}
 
-	public void saveEmployeeTimesheet(String employeeName, String employeeNumber, String email) {
-
-		String status = "pending";
-		EmployeeTimesheet employeeTimesheet = new EmployeeTimesheet();
-
-		employeeTimesheet.setEmployeeName(employeeName);
-		employeeTimesheet.setEmployeeNumber(employeeNumber);
-		employeeTimesheet.setEmail(email);
-		employeeTimesheet.setJanuary(status);
-		employeeTimesheet.setFebruary(status);
-		employeeTimesheet.setMarch(status);
-		employeeTimesheet.setApril(status);
-		employeeTimesheet.setMay(status);
-		employeeTimesheet.setJune(status);
-		employeeTimesheet.setJuly(status);
-		employeeTimesheet.setAugust(status);
-		employeeTimesheet.setSeptember(status);
-		employeeTimesheet.setOctober(status);
-		employeeTimesheet.setNovember(status);
-		employeeTimesheet.setDecember(status);
-		int yr = Year.now().getValue();
-
-		employeeTimesheet.setYear(yr);
-
-		employeeTimesheetRepo.save(employeeTimesheet);
+	public Iterable<ReferredCandidateInformation> getListOfReferredCandidates() {
+		Iterable<ReferredCandidateInformation> referredCandidateList = referredCandidaterepo.findAll();
+		return referredCandidateList;
 	}
+
+	public Long countOfReferredCandidate() {
+		return referredCandidaterepo.count();
+	}
+	
 }
