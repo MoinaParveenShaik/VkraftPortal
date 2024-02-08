@@ -16,6 +16,7 @@ public class AppliedCandidateInformation {
 	private String noticePeriod;
 	private String relevantExperience;
 	private String preferredLocation;
+	private String internalReference;
 	private String resume;
 	private String jobId;
 	private String role;
@@ -25,8 +26,8 @@ public class AppliedCandidateInformation {
 	}
 
 	public AppliedCandidateInformation(String id, String fullName, String email, String mobileNumber, String education,
-			String noticePeriod, String relevantExperience, String preferredLocation, String resume, String jobId,
-			String role, String status) {
+			String noticePeriod, String relevantExperience, String preferredLocation, String internalReference,
+			String resume, String jobId, String role, String status) {
 		super();
 		this.id = id;
 		this.fullName = fullName;
@@ -36,6 +37,7 @@ public class AppliedCandidateInformation {
 		this.noticePeriod = noticePeriod;
 		this.relevantExperience = relevantExperience;
 		this.preferredLocation = preferredLocation;
+		this.internalReference = internalReference;
 		this.resume = resume;
 		this.jobId = jobId;
 		this.role = role;
@@ -106,6 +108,14 @@ public class AppliedCandidateInformation {
 		this.preferredLocation = preferredLocation;
 	}
 
+	public String getInternalReference() {
+		return internalReference;
+	}
+
+	public void setInternalReference(String internalReference) {
+		this.internalReference = internalReference;
+	}
+
 	public String getResume() {
 		return resume;
 	}
@@ -143,7 +153,8 @@ public class AppliedCandidateInformation {
 		return "AppliedCandidateInformation [id=" + id + ", fullName=" + fullName + ", email=" + email
 				+ ", mobileNumber=" + mobileNumber + ", education=" + education + ", noticePeriod=" + noticePeriod
 				+ ", relevantExperience=" + relevantExperience + ", preferredLocation=" + preferredLocation
-				+ ", resume=" + resume + ", jobId=" + jobId + ", role=" + role + ", status=" + status + "]";
+				+ ", internalReference=" + internalReference + ", resume=" + resume + ", jobId=" + jobId + ", role="
+				+ role + ", status=" + status + "]";
 	}
 
 }

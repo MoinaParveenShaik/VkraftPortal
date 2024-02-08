@@ -206,6 +206,8 @@ public class Services {
 		}
 	}
 
+	
+
 //	------------------------------------------Timesheet Services-----------------------------------
 
 	public void saveTimesheet(Timesheet timesheet) {
@@ -330,21 +332,21 @@ public class Services {
 		long count = StreamSupport.stream(timesheets.spliterator(), false).count();
 		return count;
 	}
-	
+
 	public Long getCountOfIePod1() {
 		String projectName = "IE Pod1";
 		Iterable<Timesheet> timesheets = timesheetRepo.findByProjectName(projectName);
 		long count = StreamSupport.stream(timesheets.spliterator(), false).count();
 		return count;
 	}
-	
+
 	public Long getCountOfIePod3() {
 		String projectName = "IE Pod3";
 		Iterable<Timesheet> timesheets = timesheetRepo.findByProjectName(projectName);
 		long count = StreamSupport.stream(timesheets.spliterator(), false).count();
 		return count;
 	}
-	
+
 	public void saveEmployeeTimesheet(EmployeeTimesheet employeeTimesheet) {
 		employeeTimesheetRepo.save(employeeTimesheet);
 	}
@@ -497,7 +499,6 @@ public class Services {
 		}
 		if (month.equals("June")) {
 			List<EmployeeTimesheet> data = employeeTimesheetRepo.findByJuneAndYear(status, year);
-			System.out.println("mydata:" + data);
 			return data;
 		}
 		if (month.equals("July")) {
@@ -552,6 +553,62 @@ public class Services {
 		employeeTimesheetRepo.save(employeeTimesheet);
 	}
 
+	public EmployeeTimesheet findByEmployeeEmail(String email) {
+		EmployeeTimesheet empEmail = employeeTimesheetRepo.findByEmail(email);
+		return empEmail;
+	}
+
+	public String subjectForTimesheetReminder() {
+		String subject = "Reminder for Submission of Timesheet";
+		return subject;
+	}
+
+	public String getReminderEmailBody(EmployeeTimesheet body) {
+		String emailBody = null;
+		String employeeName = body.getEmployeeName();
+		emailBody = "Dear " + employeeName + ",\n\n" + "Hope this finds you well.\n\n"
+				+ "We request you to submit your timesheet as soon as possible.\n\n"
+				+ "Thanks & Regards\n" + "HR Team\n" + "www.kraftsoftwaresolution.com";
+		return emailBody;
+	}
+	
+	public RegisterEmployee findEmployeeByEmail(String email) {
+		return employeeRepo.findByEmail(email);
+	}
+	public EmployeeTimesheet findByEmpEmail(String email) {
+		return employeeTimesheetRepo.findByEmail(email);
+	}
+	
+	public String subjectForTimesheetReminder(String month, int year) {
+	    String subject = null;
+	    if (month.equals("january")) {
+	        subject = "Reminder for Submission of Timesheet for the month of January " + year;
+	    } else if (month.equals("february")) {
+	        subject = "Reminder for Submission of Timesheet for the month of February " + year;
+	    } else if (month.equals("march")) {
+	        subject = "Reminder for Submission of Timesheet for the month of March " + year;
+	    } else if (month.equals("april")) {
+	        subject = "Reminder for Submission of Timesheet for the month of April " + year;
+	    } else if (month.equals("may")) {
+	        subject = "Reminder for Submission of Timesheet for the month of May " + year;
+	    } else if (month.equals("june")) {
+	        subject = "Reminder for Submission of Timesheet for the month of June " + year;
+	    } else if (month.equals("july")) {
+	        subject = "Reminder for Submission of Timesheet for the month of July " + year;
+	    } else if (month.equals("august")) {
+	        subject = "Reminder for Submission of Timesheet for the month of August " + year;
+	    } else if (month.equals("september")) {
+	        subject = "Reminder for Submission of Timesheet for the month of September " + year;
+	    } else if (month.equals("october")) {
+	        subject = "Reminder for Submission of Timesheet for the month of October " + year;
+	    } else if (month.equals("november")) {
+	        subject = "Reminder for Submission of Timesheet for the month of November " + year;
+	    } else if (month.equals("december")) {
+	        subject = "Reminder for Submission of Timesheet for the month of December " + year;
+	    }
+	    return subject;
+	}
+	
 //	----------------------------------AppliedCandidateInformationServices----------------------------------
 
 	public AppliedCandidateInformation saveAppliedCandidateInfo(AppliedCandidateInformation appliedCandidateInfo) {
@@ -892,19 +949,19 @@ public class Services {
 	}
 
 //	---------------------Referred Candidate Methods---------------------------------------
-	
+
 	public boolean referredCandidateInfoExists(ReferredCandidateInformation referredCandidate) {
-		if (referredCandidaterepo.findByFullNameAndEmailAndPosition(referredCandidate.getFullName(),referredCandidate.getEmail(),referredCandidate.getPosition()) != null) {
+		if (referredCandidaterepo.findByFullNameAndEmailAndPosition(referredCandidate.getFullName(),
+				referredCandidate.getEmail(), referredCandidate.getPosition()) != null) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
 
 	public ReferredCandidateInformation saveReferredCandidateInfo(ReferredCandidateInformation referredCandidate) {
 		return referredCandidaterepo.save(referredCandidate);
-		
+
 	}
 
 	public Iterable<ReferredCandidateInformation> getListOfReferredCandidates() {
@@ -915,5 +972,5 @@ public class Services {
 	public Long countOfReferredCandidate() {
 		return referredCandidaterepo.count();
 	}
-	
+
 }

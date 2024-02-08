@@ -701,7 +701,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-//	--------------32. After clicking reject delete record and send mail------------------
+//		--------------32. After clicking reject delete record and send mail------------------
 
 		rest().post("/deleteRecord").param().name("email").type(RestParamType.query).endParam()
 				.to("direct:deleteCandidateInformation");
@@ -721,7 +721,7 @@ public class Controller extends RouteBuilder {
 					exchange.getMessage().getHeaders());
 		});
 
-// ------------------------33. Get Count Of Applied Candidates Before On-Boarding------------------------------
+//		 ------------------------33. Get Count Of Applied Candidates Before On-Boarding------------------------------
 
 		rest().get("/getAppliedCandidatesCount").to("direct:getAppliedCandidatesCount");
 		from("direct:getAppliedCandidatesCount").process(exchange -> {
@@ -730,7 +730,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------34. Get Count Of Screening Candidates Before On-Boarding------------------------------
+//		 ------------------------34. Get Count Of Screening Candidates Before On-Boarding------------------------------
 		rest().get("/getScreeningCandidatesCount").to("direct:getScreeningCandidatesCount");
 		from("direct:getScreeningCandidatesCount").process(exchange -> {
 			Long screeningCandidateCount = services.getCountOfScreeningCandidate();
@@ -738,7 +738,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------35. Get Count Of Technical Round One Before On-Boarding------------------------------
+//		 ------------------------35. Get Count Of Technical Round One Before On-Boarding------------------------------
 		rest().get("/getTechnicalRoundOneCount").to("direct:getTechnicalRoundOneCount");
 		from("direct:getTechnicalRoundOneCount").process(exchange -> {
 			Long technicalRoundOneCandidateCount = services.getCountOfTechnicalRoundOne();
@@ -746,7 +746,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------36. Get Count Of Technical Round Two Before On-Boarding------------------------------
+// 		------------------------36. Get Count Of Technical Round Two Before On-Boarding------------------------------
 		rest().get("/getTechnicalRoundTwoCount").to("direct:getTechnicalRoundTwoCount");
 		from("direct:getTechnicalRoundTwoCount").process(exchange -> {
 			Long technicalRoundTwoCandidateCount = services.getCountOfTechnicalRoundTwo();
@@ -754,7 +754,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------37. Get Count Of HR Round Before On-Boarding------------------------------
+// 		------------------------37. Get Count Of HR Round Before On-Boarding------------------------------
 		rest().get("/getHRRoundCount").to("direct:getHRRoundCount");
 		from("direct:getHRRoundCount").process(exchange -> {
 			Long hrRoundCount = services.getCountOfHRRound();
@@ -762,7 +762,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-// ------------------------38. Get Count Of Selected Before On-Boarding------------------------------
+// 		------------------------38. Get Count Of Selected Before On-Boarding------------------------------
 		rest().get("/getSelectedCount").to("direct:getSelectedCount");
 		from("direct:getSelectedCount").process(exchange -> {
 			Long selectedCount = services.getCountOfSelected();
@@ -770,7 +770,7 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
 
-//				----------------------------------39. Get Job Details-----------------------------------
+//		----------------------------------39. Get Job Details-----------------------------------
 
 		rest().get("/getJobDetails").param().name("jobId").type(RestParamType.query).endParam()
 				.to("direct:getJobDetails");
@@ -789,7 +789,7 @@ public class Controller extends RouteBuilder {
 			}
 		});
 
-// 			-----------------------------40. verify team lead login---------------------------------
+// 		-----------------------------40. verify team lead login---------------------------------
 
 		rest().get("/verifyTeamLead").param().name("username").type(RestParamType.query).endParam().param()
 				.name("password").type(RestParamType.query).endParam().to("direct:TeamLead");
@@ -991,5 +991,90 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setBody(refCandidateCount);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
+		
+//		------------------57. remainder for pending employees-----------------
+		 
+		rest().get("/reminder").param().name("email").type(RestParamType.query).endParam().to("direct:sendReminder");
+ 
+		from("direct:sendReminder").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+			EmployeeTimesheet empInfo = services.findByEmployeeEmail(email);
+			if (empInfo != null) {
+				String subject = services.subjectForTimesheetReminder();
+				String emailBody = services.getReminderEmailBody(empInfo);
+				if (emailBody != null) {
+					exchange.getMessage().setHeader("emailSubject", subject);
+					exchange.getMessage().setBody(emailBody);
+					exchange.getMessage().setHeader("recipientEmail", empInfo.getEmail());
+					exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+					ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+					producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+							exchange.getMessage().getHeaders());
+				} else {
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+				}
+			} else {
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+			}
+		});
+		
+//		----------------------------58. Reset Password for Employee Timesheet-----------------------------------------------
+		 
+				rest().get("/resetPassword").param().name("email").type(RestParamType.query).endParam().param().name("password")
+						.type(RestParamType.query).endParam().to("direct:processResetPassword");
+				from("direct:processResetPassword").process(exchange -> {
+					String email = exchange.getIn().getHeader("email", String.class);
+					String password = exchange.getIn().getHeader("password", String.class);
+					RegisterEmployee registerEmployee = services.findEmployeeByEmail(email);
+					if (services.employeeExists(registerEmployee)) {
+						registerEmployee.setPassword(password);
+						services.saveEmployee(registerEmployee);
+						if (!services.isValidPassword(registerEmployee.getPassword())) {
+							exchange.getMessage().setBody(
+									"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
+							return;
+						} else {
+							exchange.getMessage().setBody(registerEmployee);
+							exchange.getMessage().setBody("Password updated succussfully");
+							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+						}
+					} else {
+						exchange.getMessage().setBody("Please provide valid emailid");
+						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+					}
+				});
+				
+//				------------------59. remainder with month and year for pending employees-----------------
+				 
+				rest().get("/reminderWithMonthYear").param().name("email").type(RestParamType.query).endParam().param().name("month")
+						.type(RestParamType.query).endParam().param().name("year").type(RestParamType.query).endParam()
+						.to("direct:sendingReminder");
+				from("direct:sendingReminder").process(exchange -> {
+					String email = exchange.getIn().getHeader("email", String.class);
+					String month = exchange.getIn().getHeader("month", String.class);
+					Integer year = exchange.getIn().getHeader("year", Integer.class);
+					EmployeeTimesheet empInfo = services.findByEmpEmail(email);
+					if (empInfo != null && year != null) {
+						String subject = services.subjectForTimesheetReminder(month, year);
+						String emailBody = services.getReminderEmailBody(empInfo);
+						if (subject != null && emailBody != null) {
+							exchange.getMessage().setHeader("emailSubject", subject);
+							exchange.getMessage().setBody(emailBody);
+							exchange.getMessage().setHeader("recipientEmail", empInfo.getEmail());
+							exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+							ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+							producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+									exchange.getMessage().getHeaders());
+						} else {
+							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+							exchange.getMessage().setBody("Missing data to generate reminder email.");
+						}
+					} else {
+						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+						exchange.getMessage().setBody("Employee information or year not found for email: " + email);
+					}
+				});
 	}
 }

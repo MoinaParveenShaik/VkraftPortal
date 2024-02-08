@@ -38,4 +38,6 @@ public interface EmployeeTimesheetRepo extends ElasticsearchRepository<EmployeeT
 
 	List<EmployeeTimesheet> findByDecemberAndYear(String status, int year);
 
+	EmployeeTimesheet findByEmail(String email);
+
 }
