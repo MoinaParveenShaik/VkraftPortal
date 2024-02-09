@@ -13,21 +13,24 @@ public class RegisterEmployee {
 	private String employeeNumber;
 	private String email;
 	private String password;
+	private String role;
 	private String designation;
 	private String gender;
 	private long mobileNumber;
 
 	public RegisterEmployee() {
+		// TODO Auto-generated constructor stub
 	}
 
 	public RegisterEmployee(String id, String employeeName, String employeeNumber, String email, String password,
-			String designation, String gender, long mobileNumber) {
+			String role, String designation, String gender, long mobileNumber) {
 		super();
 		this.id = id;
 		this.employeeName = employeeName;
 		this.employeeNumber = employeeNumber;
 		this.email = email;
 		this.password = password;
+		this.role = role;
 		this.designation = designation;
 		this.gender = gender;
 		this.mobileNumber = mobileNumber;
@@ -73,6 +76,14 @@ public class RegisterEmployee {
 		this.password = password;
 	}
 
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
 	public String getDesignation() {
 		return designation;
 	}
@@ -100,8 +111,8 @@ public class RegisterEmployee {
 	@Override
 	public String toString() {
 		return "RegisterEmployee [id=" + id + ", employeeName=" + employeeName + ", employeeNumber=" + employeeNumber
-				+ ", email=" + email + ", password=" + password + ", designation=" + designation + ", gender=" + gender
-				+ ", mobileNumber=" + mobileNumber + "]";
+				+ ", email=" + email + ", password=" + password + ", role=" + role + ", designation=" + designation
+				+ ", gender=" + gender + ", mobileNumber=" + mobileNumber + "]";
 	}
 
 }

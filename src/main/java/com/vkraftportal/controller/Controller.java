@@ -247,7 +247,6 @@ public class Controller extends RouteBuilder {
 			String month = exchange.getIn().getHeader("month", String.class);
 			int year = exchange.getIn().getHeader("year", Integer.class);
 			List<EmployeeTimesheet> pendingEmployees = services.getPendingEmployeesTimesheetByMonth(month, year);
-			System.out.println(pendingEmployees + "jjjj");
 
 			if (pendingEmployees != null && !pendingEmployees.isEmpty()) {
 				exchange.getMessage().setBody(pendingEmployees);
@@ -442,9 +441,7 @@ public class Controller extends RouteBuilder {
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				String jobId = exchange.getIn().getHeader("jobId", String.class);
-				System.out.println(jobId);
 				boolean isDeleted = services.deleteJobDetails(jobId);
-				System.out.println(isDeleted);
 				if (!isDeleted) {
 					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 409);
 					exchange.getMessage().setBody("Job with ID " + jobId + " not found or already deleted.");
@@ -836,10 +833,7 @@ public class Controller extends RouteBuilder {
 			String password = exchange.getIn().getHeader("password", String.class);
 			log.info("Received request with username: {} and password: {}", username, password);
 			HumanResource humanResource = services.getHRByUsernameAndPassword(username, password);
-
-			// Use equals method for string comparison
 			if (humanResource != null) {
-
 				exchange.getMessage().setBody(humanResource);
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 			} else {
@@ -855,7 +849,6 @@ public class Controller extends RouteBuilder {
 		from("direct:getListOfEmployeesInProject").process(exchange -> {
 			String projectName = exchange.getIn().getHeader("projectName", String.class);
 			List<Timesheet> employeeInfo = services.findByProjectname(projectName);
-			// System.out.println(employeeInfo);
 			exchange.getMessage().setBody(employeeInfo);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});

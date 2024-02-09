@@ -25,5 +25,7 @@ public interface TimesheetRepo extends ElasticsearchRepository<Timesheet, Intege
 	List<Timesheet> findByClientName(String clientName);
 
 	List<Timesheet> findByProjectName(String projectName);
+	
+	Timesheet findByClientNameAndProjectName(String clientName, String projectName);
 
 }

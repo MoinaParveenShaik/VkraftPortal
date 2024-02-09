@@ -11,6 +11,8 @@ public class EmployeeTimesheet {
 	private String employeeName;
 	private String employeeNumber;
 	private String email;
+	private String clientName;
+	private String projectName;
 	private String january;
 	private String february;
 	private String march;
@@ -26,16 +28,18 @@ public class EmployeeTimesheet {
 	private int year;
 
 	public EmployeeTimesheet() {
-		// TODO Auto-generated constructor stub
 	}
 
-	public EmployeeTimesheet(String id, String employeeName, String employeeNumber, String email, String january,
-			String february, String march, String april, String may, String june, String july, String august,
-			String september, String october, String november, String december, int year) {
+	public EmployeeTimesheet(String id, String employeeName, String employeeNumber, String email, String clientName,
+			String projectName, String january, String february, String march, String april, String may, String june,
+			String july, String august, String september, String october, String november, String december, int year) {
+		super();
 		this.id = id;
 		this.employeeName = employeeName;
 		this.employeeNumber = employeeNumber;
 		this.email = email;
+		this.clientName = clientName;
+		this.projectName = projectName;
 		this.january = january;
 		this.february = february;
 		this.march = march;
@@ -81,6 +85,22 @@ public class EmployeeTimesheet {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getClientName() {
+		return clientName;
+	}
+
+	public void setClientName(String clientName) {
+		this.clientName = clientName;
+	}
+
+	public String getProjectName() {
+		return projectName;
+	}
+
+	public void setProjectName(String projectName) {
+		this.projectName = projectName;
 	}
 
 	public String getJanuary() {
@@ -190,10 +210,10 @@ public class EmployeeTimesheet {
 	@Override
 	public String toString() {
 		return "EmployeeTimesheet [id=" + id + ", employeeName=" + employeeName + ", employeeNumber=" + employeeNumber
-				+ ", email=" + email + ", january=" + january + ", february=" + february + ", march=" + march
-				+ ", april=" + april + ", may=" + may + ", june=" + june + ", july=" + july + ", august=" + august
-				+ ", september=" + september + ", october=" + october + ", november=" + november + ", december="
-				+ december + ", year=" + year + "]";
+				+ ", email=" + email + ", clientName=" + clientName + ", projectName=" + projectName + ", january="
+				+ january + ", february=" + february + ", march=" + march + ", april=" + april + ", may=" + may
+				+ ", june=" + june + ", july=" + july + ", august=" + august + ", september=" + september + ", october="
+				+ october + ", november=" + november + ", december=" + december + ", year=" + year + "]";
 	}
 
 }

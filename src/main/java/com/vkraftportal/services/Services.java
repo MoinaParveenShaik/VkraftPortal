@@ -50,20 +50,15 @@ public class Services {
 	public HumanResource getHRByUsernameAndPassword(String email, String password) {
 
 		if ("hr123@gmail.com".equals(email) && "hr321@Vkraft".equals(password)) {
-
 			return humanResourceRepo.findByEmailAndPassword(email, password);
-
 		} else {
 			return null;
 		}
 	}
 
 	public HumanResource getTLByUsernameAndPassword(String email, String password) {
-
 		if ("tl123@gmail.com".equals(email) && "tl321@Vkraft".equals(password)) {
-
 			return humanResourceRepo.findByEmailAndPassword(email, password);
-
 		} else {
 			return null;
 		}
@@ -75,12 +70,10 @@ public class Services {
 	}
 
 	public HumanResource saveHRCredentials(HumanResource humanResource) {
-
 		return humanResourceRepo.save(humanResource);
 	}
 
 	public boolean humanResourceExists(HumanResource humanResource) {
-
 		if (humanResourceRepo.findByEmailAndPassword(humanResource.getEmail(), humanResource.getPassword()) != null) {
 			return true;
 		} else {
@@ -205,8 +198,6 @@ public class Services {
 			return false;
 		}
 	}
-
-	
 
 //	------------------------------------------Timesheet Services-----------------------------------
 
@@ -402,7 +393,6 @@ public class Services {
 				byEmployeeNumber.setDecember("submitted");
 				byEmployeeNumber.setYear(yrInt);
 			}
-
 			employeeTimesheetRepo.save(byEmployeeNumber);
 		} else {
 			EmployeeTimesheet empData = employeeTimesheetRepo.findByEmployeeNumber(employeeNumber);
@@ -529,10 +519,8 @@ public class Services {
 	}
 
 	public void saveEmployeeTimesheet(String employeeName, String employeeNumber, String email) {
-
 		String status = "pending";
 		EmployeeTimesheet employeeTimesheet = new EmployeeTimesheet();
-
 		employeeTimesheet.setEmployeeName(employeeName);
 		employeeTimesheet.setEmployeeNumber(employeeNumber);
 		employeeTimesheet.setEmail(email);
@@ -567,48 +555,49 @@ public class Services {
 		String emailBody = null;
 		String employeeName = body.getEmployeeName();
 		emailBody = "Dear " + employeeName + ",\n\n" + "Hope this finds you well.\n\n"
-				+ "We request you to submit your timesheet as soon as possible.\n\n"
-				+ "Thanks & Regards\n" + "HR Team\n" + "www.kraftsoftwaresolution.com";
+				+ "We request you to submit your timesheet as soon as possible.\n\n" + "Thanks & Regards\n"
+				+ "HR Team\n" + "www.kraftsoftwaresolution.com";
 		return emailBody;
 	}
-	
+
 	public RegisterEmployee findEmployeeByEmail(String email) {
 		return employeeRepo.findByEmail(email);
 	}
+
 	public EmployeeTimesheet findByEmpEmail(String email) {
 		return employeeTimesheetRepo.findByEmail(email);
 	}
-	
+
 	public String subjectForTimesheetReminder(String month, int year) {
-	    String subject = null;
-	    if (month.equals("january")) {
-	        subject = "Reminder for Submission of Timesheet for the month of January " + year;
-	    } else if (month.equals("february")) {
-	        subject = "Reminder for Submission of Timesheet for the month of February " + year;
-	    } else if (month.equals("march")) {
-	        subject = "Reminder for Submission of Timesheet for the month of March " + year;
-	    } else if (month.equals("april")) {
-	        subject = "Reminder for Submission of Timesheet for the month of April " + year;
-	    } else if (month.equals("may")) {
-	        subject = "Reminder for Submission of Timesheet for the month of May " + year;
-	    } else if (month.equals("june")) {
-	        subject = "Reminder for Submission of Timesheet for the month of June " + year;
-	    } else if (month.equals("july")) {
-	        subject = "Reminder for Submission of Timesheet for the month of July " + year;
-	    } else if (month.equals("august")) {
-	        subject = "Reminder for Submission of Timesheet for the month of August " + year;
-	    } else if (month.equals("september")) {
-	        subject = "Reminder for Submission of Timesheet for the month of September " + year;
-	    } else if (month.equals("october")) {
-	        subject = "Reminder for Submission of Timesheet for the month of October " + year;
-	    } else if (month.equals("november")) {
-	        subject = "Reminder for Submission of Timesheet for the month of November " + year;
-	    } else if (month.equals("december")) {
-	        subject = "Reminder for Submission of Timesheet for the month of December " + year;
-	    }
-	    return subject;
+		String subject = null;
+		if (month.equals("january")) {
+			subject = "Reminder for Submission of Timesheet for the month of January " + year;
+		} else if (month.equals("february")) {
+			subject = "Reminder for Submission of Timesheet for the month of February " + year;
+		} else if (month.equals("march")) {
+			subject = "Reminder for Submission of Timesheet for the month of March " + year;
+		} else if (month.equals("april")) {
+			subject = "Reminder for Submission of Timesheet for the month of April " + year;
+		} else if (month.equals("may")) {
+			subject = "Reminder for Submission of Timesheet for the month of May " + year;
+		} else if (month.equals("june")) {
+			subject = "Reminder for Submission of Timesheet for the month of June " + year;
+		} else if (month.equals("july")) {
+			subject = "Reminder for Submission of Timesheet for the month of July " + year;
+		} else if (month.equals("august")) {
+			subject = "Reminder for Submission of Timesheet for the month of August " + year;
+		} else if (month.equals("september")) {
+			subject = "Reminder for Submission of Timesheet for the month of September " + year;
+		} else if (month.equals("october")) {
+			subject = "Reminder for Submission of Timesheet for the month of October " + year;
+		} else if (month.equals("november")) {
+			subject = "Reminder for Submission of Timesheet for the month of November " + year;
+		} else if (month.equals("december")) {
+			subject = "Reminder for Submission of Timesheet for the month of December " + year;
+		}
+		return subject;
 	}
-	
+
 //	----------------------------------AppliedCandidateInformationServices----------------------------------
 
 	public AppliedCandidateInformation saveAppliedCandidateInfo(AppliedCandidateInformation appliedCandidateInfo) {
