@@ -22,6 +22,8 @@ public class Timesheet {
 	private String assignmentName;
 	private String projectName;
 	private String status;
+	private String newStatus;
+	private String comments;
 	private List<DaywiseActivity> timesheetData;
 	private String totalWorkingDays;
 	private String totalWorkingHours;
@@ -32,7 +34,8 @@ public class Timesheet {
 
 	public Timesheet(String id, String employeeName, String employeeNumber, String month, String year,
 			String clientName, String supervisorName, String assignmentName, String projectName, String status,
-			List<DaywiseActivity> timesheetData, String totalWorkingDays, String totalWorkingHours) {
+			String newStatus, String comments, List<DaywiseActivity> timesheetData, String totalWorkingDays,
+			String totalWorkingHours) {
 		super();
 		this.id = id;
 		this.employeeName = employeeName;
@@ -44,6 +47,8 @@ public class Timesheet {
 		this.assignmentName = assignmentName;
 		this.projectName = projectName;
 		this.status = status;
+		this.newStatus = newStatus;
+		this.comments = comments;
 		this.timesheetData = timesheetData;
 		this.totalWorkingDays = totalWorkingDays;
 		this.totalWorkingHours = totalWorkingHours;
@@ -129,6 +134,22 @@ public class Timesheet {
 		this.status = status;
 	}
 
+	public String getNewStatus() {
+		return newStatus;
+	}
+
+	public void setNewStatus(String newStatus) {
+		this.newStatus = newStatus;
+	}
+
+	public String getComments() {
+		return comments;
+	}
+
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+
 	public List<DaywiseActivity> getTimesheetData() {
 		return timesheetData;
 	}
@@ -158,9 +179,8 @@ public class Timesheet {
 		return "Timesheet [id=" + id + ", employeeName=" + employeeName + ", employeeNumber=" + employeeNumber
 				+ ", month=" + month + ", year=" + year + ", clientName=" + clientName + ", supervisorName="
 				+ supervisorName + ", assignmentName=" + assignmentName + ", projectName=" + projectName + ", status="
-				+ status + ", timesheetData=" + timesheetData + ", totalWorkingDays=" + totalWorkingDays
-				+ ", totalWorkingHours=" + totalWorkingHours + "]";
+				+ status + ", newStatus=" + newStatus + ", comments=" + comments + ", timesheetData=" + timesheetData
+				+ ", totalWorkingDays=" + totalWorkingDays + ", totalWorkingHours=" + totalWorkingHours + "]";
 	}
-	
-	
+
 }

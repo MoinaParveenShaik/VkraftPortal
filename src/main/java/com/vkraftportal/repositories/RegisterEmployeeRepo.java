@@ -19,4 +19,6 @@ public interface RegisterEmployeeRepo extends ElasticsearchRepository<RegisterEm
 	RegisterEmployee deleteByEmployeeNumber(String employeeNumber);
 	
 	RegisterEmployee findByEmployeeNumber(String employeeNumber);
+
+	RegisterEmployee findByRole(String string);
 }

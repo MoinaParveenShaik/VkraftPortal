@@ -1,5 +1,6 @@
 package com.vkraftportal.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.camel.Exchange;
@@ -136,7 +137,7 @@ public class Controller extends RouteBuilder {
 
 // ---------------------------------------------------------- 4.Delete Timesheet Timesheet------------------------------------------------------
 
-		rest().delete("/deleteTimesheet").param().name("employeeNumber").type(RestParamType.query).endParam().param()
+		rest().get("/deleteTimesheet").param().name("employeeNumber").type(RestParamType.query).endParam().param()
 				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
 				.endParam().to("direct:delete");
 		from("direct:delete").process(exchange -> {
@@ -227,8 +228,8 @@ public class Controller extends RouteBuilder {
 
 // ------------------------------------------------9. GetApprovedTimesheets HR Portal Timesheet------------------------------------------------------------
 
-		rest().get("/getApprovedTimesheeets").to("direct:approvedTimesheeets");
-		from("direct:approvedTimesheeets").process(exchange -> {
+		rest().get("/getApprovedList").to("direct:approvedList");
+		from("direct:approvedList").process(exchange -> {
 			List<Timesheet> approvedEmployees = services.getEmployeesByStatus("approved");
 			if (approvedEmployees != null && !approvedEmployees.isEmpty()) {
 				exchange.getMessage().setBody(approvedEmployees);
@@ -984,11 +985,11 @@ public class Controller extends RouteBuilder {
 			exchange.getMessage().setBody(refCandidateCount);
 			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
 		});
-		
+
 //		------------------57. remainder for pending employees-----------------
-		 
+
 		rest().get("/reminder").param().name("email").type(RestParamType.query).endParam().to("direct:sendReminder");
- 
+
 		from("direct:sendReminder").process(exchange -> {
 			String email = exchange.getIn().getHeader("email", String.class);
 			EmployeeTimesheet empInfo = services.findByEmployeeEmail(email);
@@ -1011,63 +1012,188 @@ public class Controller extends RouteBuilder {
 				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
 			}
 		});
-		
+
 //		----------------------------58. Reset Password for Employee Timesheet-----------------------------------------------
-		 
-				rest().get("/resetPassword").param().name("email").type(RestParamType.query).endParam().param().name("password")
-						.type(RestParamType.query).endParam().to("direct:processResetPassword");
-				from("direct:processResetPassword").process(exchange -> {
-					String email = exchange.getIn().getHeader("email", String.class);
-					String password = exchange.getIn().getHeader("password", String.class);
-					RegisterEmployee registerEmployee = services.findEmployeeByEmail(email);
-					if (services.employeeExists(registerEmployee)) {
-						registerEmployee.setPassword(password);
-						services.saveEmployee(registerEmployee);
-						if (!services.isValidPassword(registerEmployee.getPassword())) {
-							exchange.getMessage().setBody(
-									"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
-							return;
-						} else {
-							exchange.getMessage().setBody(registerEmployee);
-							exchange.getMessage().setBody("Password updated succussfully");
-							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-						}
-					} else {
-						exchange.getMessage().setBody("Please provide valid emailid");
-						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
-					}
-				});
-				
+
+		rest().get("/resetPassword").param().name("email").type(RestParamType.query).endParam().param().name("password")
+				.type(RestParamType.query).endParam().to("direct:processResetPassword");
+		from("direct:processResetPassword").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+			String password = exchange.getIn().getHeader("password", String.class);
+			RegisterEmployee registerEmployee = services.findEmployeeByEmail(email);
+			if (services.employeeExists(registerEmployee)) {
+				registerEmployee.setPassword(password);
+				services.saveEmployee(registerEmployee);
+				if (!services.isValidPassword(registerEmployee.getPassword())) {
+					exchange.getMessage().setBody(
+							"Password should have at least one lowercase, one uppercase, one digit, and one special character & minimum length 8");
+					return;
+				} else {
+					exchange.getMessage().setBody(registerEmployee);
+					exchange.getMessage().setBody("Password updated succussfully");
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+				}
+			} else {
+				exchange.getMessage().setBody("Please provide valid emailid");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 400);
+			}
+		});
+
 //				------------------59. remainder with month and year for pending employees-----------------
-				 
-				rest().get("/reminderWithMonthYear").param().name("email").type(RestParamType.query).endParam().param().name("month")
-						.type(RestParamType.query).endParam().param().name("year").type(RestParamType.query).endParam()
-						.to("direct:sendingReminder");
-				from("direct:sendingReminder").process(exchange -> {
-					String email = exchange.getIn().getHeader("email", String.class);
-					String month = exchange.getIn().getHeader("month", String.class);
-					Integer year = exchange.getIn().getHeader("year", Integer.class);
-					EmployeeTimesheet empInfo = services.findByEmpEmail(email);
-					if (empInfo != null && year != null) {
-						String subject = services.subjectForTimesheetReminder(month, year);
-						String emailBody = services.getReminderEmailBody(empInfo);
-						if (subject != null && emailBody != null) {
-							exchange.getMessage().setHeader("emailSubject", subject);
-							exchange.getMessage().setBody(emailBody);
-							exchange.getMessage().setHeader("recipientEmail", empInfo.getEmail());
-							exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
-							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
-							ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
-							producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
-									exchange.getMessage().getHeaders());
-						} else {
-							exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
-							exchange.getMessage().setBody("Missing data to generate reminder email.");
-						}
-					} else {
-						exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
-						exchange.getMessage().setBody("Employee information or year not found for email: " + email);
-					}
-				});
+
+		rest().get("/reminderWithMonthYear").param().name("email").type(RestParamType.query).endParam().param()
+				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
+				.endParam().to("direct:sendingReminder");
+		from("direct:sendingReminder").process(exchange -> {
+			String email = exchange.getIn().getHeader("email", String.class);
+			String month = exchange.getIn().getHeader("month", String.class);
+			Integer year = exchange.getIn().getHeader("year", Integer.class);
+			EmployeeTimesheet empInfo = services.findByEmpEmail(email);
+			if (empInfo != null && year != null) {
+				String subject = services.subjectForTimesheetReminder(month, year);
+				String emailBody = services.getReminderEmailBody(empInfo);
+				if (subject != null && emailBody != null) {
+					exchange.getMessage().setHeader("emailSubject", subject);
+					exchange.getMessage().setBody(emailBody);
+					exchange.getMessage().setHeader("recipientEmail", empInfo.getEmail());
+					exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+					ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+					producerTemplate.sendBodyAndHeaders("direct:sendMail", exchange.getMessage().getBody(),
+							exchange.getMessage().getHeaders());
+				} else {
+					exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 500);
+					exchange.getMessage().setBody("Missing data to generate reminder email.");
+				}
+			} else {
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 404);
+				exchange.getMessage().setBody("Employee information or year not found for email: " + email);
+			}
+		});
+
+//				-------------------------60. filter timesheet list ---------------------
+
+		rest().get("/filterListForProjects").param().name("projectName").type(RestParamType.query).endParam().param()
+				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
+				.endParam().to("direct:filterListForProjects");
+		from("direct:filterListForProjects").process(exchange -> {
+			String projectName = exchange.getIn().getHeader("projectName", String.class);
+			String month = exchange.getIn().getHeader("month", String.class);
+			String year = exchange.getIn().getHeader("year", String.class);
+			List<Timesheet> employeeInfo = services.findByProjectMonthYear(projectName, month, year);
+			exchange.getMessage().setBody(employeeInfo);
+			exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+		});
+
+//		-----------------------61. Approve Timesheet---------------------------
+
+		rest().post("/approveTimesheetMail").param().name("employeeNumber").type(RestParamType.query).endParam().param()
+				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
+				.endParam().param().name("projectName").type(RestParamType.query).endParam()
+				.to("direct:approveTimesheetMail");
+
+		from("direct:approveTimesheetMail").process(exchange -> {
+			String employeeNumber = exchange.getIn().getHeader("employeeNumber", String.class);
+			String email = exchange.getIn().getHeader("email", String.class);
+			String month = exchange.getIn().getHeader("month", String.class);
+			String year = exchange.getIn().getHeader("year", String.class);
+			String projectName = exchange.getIn().getHeader("projectName", String.class);
+			;
+			Timesheet empInfo = services.findByEmpNumber(employeeNumber, month, year, projectName);
+			String role = exchange.getIn().getHeader("role", String.class);
+			RegisterEmployee empRole = services.findByRole(role);
+			String empNum = empRole.getEmployeeNumber();
+			Timesheet timesheet = services.findByEmpNumbr(empNum);
+//			String projctName = timesheet.getProjectName();
+			String employeRole = empRole.getEmail();
+			EmployeeTimesheet empTimesheetInfo = services.findByEmployeNumber(employeeNumber, empInfo.getMonth(),
+					empInfo.getYear());
+			if (empInfo != null) {
+				String NewStatus = exchange.getIn().getHeader("newStatus", String.class);
+				String newStatus = (NewStatus != null) ? NewStatus : "approved";
+				empInfo.setNewStatus(newStatus);
+				services.saveTimesheet(empInfo);
+				services.saveEmployeeTimesheet(empTimesheetInfo);
+				String emailBody = services.emailBodyForApproved(empInfo);
+				exchange.getMessage().setBody(emailBody);
+				exchange.getMessage().setHeader("To", empTimesheetInfo.getEmail());
+				exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+
+				List<String> additionalRecipients = new ArrayList<>();
+				if ("Team Lead".equals(employeRole) && empRole != null && empRole.getEmail() != null) {
+					additionalRecipients.add(empRole.getEmail());
+					System.out.println("Added TeamLead: " + empRole.getEmail());
+				}
+				String ccRecipients = String.join(",", additionalRecipients);
+				exchange.getMessage().setHeader("Cc", ccRecipients);
+				exchange.getMessage().setHeader("Cc", empRole.getEmail());
+				ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+				producerTemplate.sendBodyAndHeaders("direct:sendingEMail", exchange.getMessage().getBody(),
+						exchange.getMessage().getHeaders());
+			}
+		});
+
+		from("direct:sendingEMail").setHeader("Subject", simple("Timesheet Approval")).process(exchange -> {
+			String recipientEmail = exchange.getMessage().getHeader("recipientEmail", String.class);
+			String emailBody = exchange.getIn().getBody(String.class);
+			exchange.getMessage().setBody(emailBody);
+		}).toD("smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}");
+
+//		------------------------62. Reject Timesheet-----------------------------------
+
+		rest().post("/rejectTimesheetMail").param().name("employeeNumber").type(RestParamType.query).endParam().param()
+				.name("month").type(RestParamType.query).endParam().param().name("year").type(RestParamType.query)
+				.endParam().param().name("projectName").type(RestParamType.query).endParam()
+				.to("direct:rejectTimesheetMail");
+
+		from("direct:rejectTimesheetMail").process(exchange -> {
+			String employeeNumber = exchange.getIn().getHeader("employeeNumber", String.class);
+			String email = exchange.getIn().getHeader("email", String.class);
+			String month = exchange.getIn().getHeader("month", String.class);
+			String year = exchange.getIn().getHeader("year", String.class);
+			String projectName = exchange.getIn().getHeader("projectName", String.class);
+			;
+			Timesheet empInfo = services.findByEmpNumber(employeeNumber, month, year, projectName);
+			String role = exchange.getIn().getHeader("role", String.class);
+			RegisterEmployee empRole = services.findByRole(role);
+			String empNum = empRole.getEmployeeNumber();
+			Timesheet timesheet = services.findByEmpNumbr(empNum);
+			String projctName = timesheet.getProjectName();
+			String employeRole = empRole.getEmail();
+			EmployeeTimesheet empTimesheetInfo = services.RejectEmployee(employeeNumber, empInfo.getMonth(),
+					empInfo.getYear());
+			if (empInfo != null) {
+				String NewStatus = exchange.getIn().getHeader("newStatus", String.class);
+				String newStatus = (NewStatus != null) ? NewStatus : "rejected";
+				empInfo.setNewStatus(newStatus);
+				services.saveTimesheet(empInfo);
+				services.saveEmployeeTimesheet(empTimesheetInfo);
+				String emailBody = services.emailBodyForRejected(empInfo);
+				exchange.getMessage().setBody(emailBody);
+				exchange.getMessage().setHeader("To", empTimesheetInfo.getEmail());
+				exchange.getMessage().setHeader(Exchange.CONTENT_TYPE, "text/plain");
+				exchange.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
+
+				List<String> additionalRecipients = new ArrayList<>();
+				if ("TeamLead".equals(employeRole) && "SOA ".equals(projctName) && empRole != null
+						&& empRole.getEmail() != null) {
+					additionalRecipients.add(empRole.getEmail());
+					System.out.println("Added TeamLead: " + empRole.getEmail());
+				}
+				String ccRecipients = String.join(",", additionalRecipients);
+				exchange.getMessage().setHeader("Cc", ccRecipients);
+				exchange.getMessage().setHeader("Cc", empRole.getEmail());
+				ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate();
+				producerTemplate.sendBodyAndHeaders("direct:sendingEmail", exchange.getMessage().getBody(),
+						exchange.getMessage().getHeaders());
+			}
+		});
+
+		from("direct:sendingEmail").setHeader("Subject", simple("Timesheet Rejection")).process(exchange -> {
+			String recipientEmail = exchange.getMessage().getHeader("recipientEmail", String.class);
+			String emailBody = exchange.getIn().getBody(String.class);
+			exchange.getMessage().setBody(emailBody);
+		}).toD("smtps://smtp.gmail.com:465?username=vaibhavilandge97@gmail.com&password=bjdo uoqc vmhc hwef&to=${header.recipientEmail}");
 	}
 }

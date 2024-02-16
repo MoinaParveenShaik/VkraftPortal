@@ -199,6 +199,11 @@ public class Services {
 		}
 	}
 
+	public RegisterEmployee findByRole(String role) {
+		RegisterEmployee emp = employeeRepo.findByRole("Team Lead");
+		return emp;
+	}
+
 //	------------------------------------------Timesheet Services-----------------------------------
 
 	public void saveTimesheet(Timesheet timesheet) {
@@ -238,16 +243,65 @@ public class Services {
 		}
 	}
 
+	public Timesheet findByEmpNumber(String empNumber, String month, String year, String projectName) {
+		Timesheet entity = timesheetRepo.findByEmployeeNumberAndMonthAndYearAndProjectName(empNumber, month, year,
+				projectName);
+		return entity;
+	}
+
+	public Timesheet findByEmpNumbr(String empNumber) {
+		Timesheet entity = timesheetRepo.findByEmployeeNumber(empNumber);
+		return entity;
+	}
+
+	public String emailBodyForApproved(Timesheet body) {
+		String emailBody = null;
+		String empName = body.getEmployeeName();
+		String month = body.getMonth();
+		String year = body.getYear();
+		String newStatus = body.getNewStatus();
+		if ("approved".equals(newStatus)) {
+			emailBody = "Dear " + empName + ",\n\n" + "Hope this finds you well. Your Timesheet for the month of "
+					+ month + " " + year + " is approved.\n\n"
+					+ "If you have any questions or wish to provide additional information, please feel free to reach "
+					+ "out to our Human Resources team at HR@vkraftsoftware.com\n\n" + "Best regards,\n" + "HR Team,\n"
+					+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		return emailBody;
+	}
+	
+	public String emailBodyForRejected(Timesheet body) {
+		String emailBody = null;
+		String empName = body.getEmployeeName();
+		String month = body.getMonth();
+		String year = body.getYear();
+		String newStatus = body.getNewStatus();
+		String employeeNumber = null;
+		timesheetRepo.findByEmployeeNumber(employeeNumber);
+		if ("rejected".equals(newStatus)) {
+			emailBody = "Dear " + empName + ",\n\n" + "Hope this finds you well. Your Timesheet for the month of "
+					+ month + " " + year + " is rejected.\n\n"
+					+ "If you have any questions or wish to provide additional information, please feel free to reach "
+					+ "out to our Human Resources team at HR@vkraftsoftware.com\n\n" + "Best regards,\n" + "HR Team,\n"
+					+ "Vkraft Software Services Pvt Ltd\n" + "www.vkraftsoftware.com\n"
+					+ "www.kraftsoftwaresolution.com";
+		}
+		return emailBody;
+	}
+
 	public List<Timesheet> getApprovedTimesheet(String status, String month, String year) {
 		return timesheetRepo.findByStatusAndMonthAndYear(status, month, year);
 	}
 
 	public List<Timesheet> getEmployeesByStatus(String string) {
 		if (string.equals("pending")) {
+			System.out.println("in pending ");
 			List<Timesheet> findByStatus = timesheetRepo.findByStatus(string);
 			return findByStatus;
 		} else if (string.equals("approved")) {
-			List<Timesheet> findByStatus = timesheetRepo.findByStatus(string);
+			System.out.println("in approved ");
+			List<Timesheet> findByStatus = timesheetRepo.findByNewStatus(string);
 			return findByStatus;
 		} else
 			return null;
@@ -265,6 +319,11 @@ public class Services {
 				|| "Horizon".equals(projectName) || "IE Pod1".equals(projectName) || "IE Pod3".equals(projectName)) {
 			employeeProject = timesheetRepo.findByProjectName(projectName);
 		}
+		return employeeProject;
+	}
+
+	public List<Timesheet> findByProjectMonthYear(String projectName, String month, String year) {
+		List<Timesheet> employeeProject = timesheetRepo.findByProjectNameAndMonthAndYear(projectName, month, year);
 		return employeeProject;
 	}
 
@@ -463,6 +522,94 @@ public class Services {
 			}
 			employeeTimesheetRepo.save(newDataToSave);
 		}
+	}
+
+	public EmployeeTimesheet findByEmployeNumber(String employeeNumber, String month, String year) {
+		EmployeeTimesheet num = employeeTimesheetRepo.findByEmployeeNumber(employeeNumber);
+		if (num != null) {
+			if (month.equals("January")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("February")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("March")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("April")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("May")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("June")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("July")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("August")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("September")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("October")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("November")) {
+				num.setJanuary("submitted & approved");
+			}
+			if (month.equals("December")) {
+				num.setJanuary("submitted & approved");
+			}
+
+		}
+		return num;
+	}
+	
+	public EmployeeTimesheet RejectEmployee(String employeeNumber, String month, String year) {
+		EmployeeTimesheet num = employeeTimesheetRepo.findByEmployeeNumber(employeeNumber);
+		if (num != null) {
+			if (month.equals("January")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("February")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("March")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("April")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("May")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("June")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("July")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("August")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("September")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("October")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("November")) {
+				num.setJanuary("pending");
+			}
+			if (month.equals("December")) {
+				num.setJanuary("pending");
+			}
+ 
+		}
+		return num;
 	}
 
 	public List<EmployeeTimesheet> getPendingEmployeesTimesheetByMonth(String month, int year) {
